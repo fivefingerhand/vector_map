@@ -8,6 +8,7 @@ Completato:
 
 - struttura progetto statica;
 - Leaflet con basemap stradale CARTO Voyager senza chiavi;
+- basemap satellitare attiva di default;
 - Leaflet incluso localmente in `vendor/leaflet/`;
 - apertura diretta di `index.html` senza fetch del GeoJSON;
 - centro iniziale su Melegnano;

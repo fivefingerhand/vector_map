@@ -28,7 +28,7 @@ const baseLayers = {
   ),
 };
 
-let activeBaseLayer = baseLayers.streets.addTo(map);
+let activeBaseLayer = baseLayers.satellite.addTo(map);
 
 const statusPanel = document.getElementById("statusPanel");
 const locationStatus = document.getElementById("locationStatus");
