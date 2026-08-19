@@ -183,6 +183,19 @@ body {
   box-shadow: var(--shadow);
 }
 
+.leaflet-control-scale {
+  margin-right: 10px !important;
+  margin-bottom: 10px !important;
+}
+
+.leaflet-control-scale-line {
+  border-color: rgba(22, 33, 44, 0.7) !important;
+  background: var(--panel-bg) !important;
+  color: var(--text) !important;
+  box-shadow: var(--shadow);
+  font-weight: 700;
+}
+
 .leaflet-control-zoom a {
   width: 42px !important;
   height: 42px !important;

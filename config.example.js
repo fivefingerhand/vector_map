@@ -1,0 +1,3 @@
+window.VECTOR_MAP_CONFIG = {
+  tracestrackKey: "INSERISCI_QUI_LA_TUA_TRACESTRACK_KEY",
+};

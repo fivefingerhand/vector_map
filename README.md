@@ -7,7 +7,8 @@ Mappa operativa statica del Comune di Melegnano, pensata per consultazione rapid
 - apre la mappa centrata su Melegnano;
 - mostra il confine comunale;
 - evidenzia il territorio comunale con una maschera sull'area esterna;
-- usa CARTO Voyager, basato su dati OpenStreetMap, come cartografia di base;
+- usa Tracestrack Topo come cartografia predefinita se e configurata una API key;
+- usa CARTO Voyager come fallback se manca la API key Tracestrack;
 - consente di passare dalla basemap stradale alla basemap satellitare;
 - include Leaflet in locale, senza dipendere da CDN per il codice della mappa;
 - consente zoom, pan e reset vista;
@@ -34,6 +35,7 @@ vector_map/
 │   └── melegnano.js
 ├── vendor/
 │   └── leaflet/
+├── config.example.js
 ├── assets/
 └── qgis/
 ```
@@ -41,9 +43,22 @@ vector_map/
 ## Fonti cartografiche
 
 - Confine comunale: ISTAT, Confini amministrativi 2022 non generalizzati, Comuni WGS84 / UTM Zone 32N, codice Comune `015140`.
-- Basemap: CARTO Voyager, basato su dati OpenStreetMap.
+- Basemap preferita: Tracestrack Topo, con API key configurabile.
+- Fallback stradale: CARTO Voyager, basato su dati OpenStreetMap.
 - Basemap satellitare: Esri World Imagery.
 - Libreria web map: Leaflet 1.9.4, inclusa localmente in `vendor/leaflet/`.
+
+## Configurare Tracestrack
+
+Per usare Tracestrack Topo come layer predefinito, creare un file locale `config.js` partendo da `config.example.js`:
+
+```js
+window.VECTOR_MAP_CONFIG = {
+  tracestrackKey: "LA_TUA_KEY",
+};
+```
+
+`config.js` e escluso da Git per evitare di pubblicare chiavi nel repository. Su GitHub Pages, una chiave frontend e comunque visibile al browser: va quindi limitata dal pannello Tracestrack al dominio `fivefingerhand.github.io`.
 
 File sorgente ISTAT usato per la conversione:
 
