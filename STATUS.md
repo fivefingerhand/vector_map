@@ -31,5 +31,5 @@ Da verificare su HTTPS:
 
 Non ancora fatto:
 
-- pubblicazione su URL HTTPS;
+- attivazione GitHub Pages dal repository;
 - progetto QGIS/PDF.

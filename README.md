@@ -63,17 +63,26 @@ Poi aprire:
 http://localhost:8080/
 ```
 
-## Pubblicazione
+## Pubblicazione GitHub Pages
 
-Il progetto e composto da file statici. Per pubblicarlo basta caricare `index.html`, `css/`, `js/` e `data/` su un hosting HTTPS.
+Il progetto e composto da file statici e puo essere pubblicato direttamente con GitHub Pages.
 
-Opzioni consigliate:
+Impostazioni consigliate nel repository GitHub:
 
-1. Azure Static Web Apps.
-2. Azure Storage Static Website.
-3. Embed in SharePoint tramite iframe, puntando a un URL HTTPS gia pubblicato.
+```text
+Settings -> Pages
+Source: Deploy from a branch
+Branch: main
+Folder: / (root)
+```
 
-OneDrive puo essere usato come archivio, ma non e consigliato come hosting principale per l'app HTML/JavaScript.
+Il sito sara disponibile a un URL simile a:
+
+```text
+https://fivefingerhand.github.io/vector_map/
+```
+
+La geolocalizzazione funziona perche GitHub Pages serve il sito in HTTPS.
 
 ## Aggiornamento confine
 

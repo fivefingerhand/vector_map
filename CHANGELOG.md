@@ -17,3 +17,4 @@
 - Disattivato il fade delle tile durante il caricamento.
 - Sostituito il confine ISTAT generalizzato con il confine ISTAT non generalizzato del Comune `015140`.
 - Aggiunto selettore basemap con livello stradale e livello satellitare Esri World Imagery.
+- Aggiunta configurazione minima per GitHub Pages con `.nojekyll`.
