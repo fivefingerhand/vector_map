@@ -1,6 +1,7 @@
 const MELEGNANO_CENTER = [45.3562426686416, 9.307885207235815];
 const INITIAL_ZOOM = 14;
 const DATA_URL = "data/melegnano.geojson";
+const MUNICIPALITIES_DATA_URL = "data/municipalities.geojson";
 
 const map = L.map("map", {
   zoomControl: false,
@@ -44,6 +45,7 @@ const boundaryToggle = document.getElementById("boundaryLayer");
 const maskToggle = document.getElementById("maskLayer");
 
 let municipalityFeature;
+let municipalityFeatures = [];
 let boundaryLayer;
 let maskLayer;
 let userMarker;
@@ -61,8 +63,13 @@ init();
 
 async function init() {
   try {
-    const geojson = window.MELEGNANO_GEOJSON || (await loadGeojson(DATA_URL));
+    const [geojson, municipalitiesGeojson] = await Promise.all([
+      window.MELEGNANO_GEOJSON || loadGeojson(DATA_URL),
+      window.MUNICIPALITIES_GEOJSON || loadGeojson(MUNICIPALITIES_DATA_URL),
+    ]);
+
     municipalityFeature = geojson.features[0];
+    municipalityFeatures = municipalitiesGeojson.features || [];
 
     boundaryLayer = L.geoJSON(geojson, {
       style: {
@@ -133,6 +140,37 @@ boundaryToggle.addEventListener("change", () => {
 maskToggle.addEventListener("change", () => {
   setLayerVisibility(maskLayer, maskToggle.checked);
 });
+
+map.on("click", (event) => {
+  if (!municipalityFeature || municipalityFeatures.length === 0) return;
+
+  const point = [event.latlng.lng, event.latlng.lat];
+  if (isPointInGeometry(point, municipalityFeature.geometry)) return;
+
+  const feature = municipalityFeatures.find((candidate) => {
+    return (
+      candidate.properties.istat_code !== municipalityFeature.properties.istat_code &&
+      isPointInGeometry(point, candidate.geometry)
+    );
+  });
+
+  const message = feature ? `Comune di ${feature.properties.name}` : "Comune non disponibile";
+  setStatus(message);
+
+  L.popup({ closeButton: false })
+    .setLatLng(event.latlng)
+    .setContent(`<strong>${escapeHtml(message)}</strong>`)
+    .openOn(map);
+});
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 
 function locateOnce() {
   if (!navigator.geolocation) {

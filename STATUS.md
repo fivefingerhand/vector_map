@@ -18,6 +18,7 @@ Completato:
 - marker posizione utente;
 - cerchio di accuratezza GPS;
 - verifica dentro/fuori Comune via point-in-polygon client-side;
+- riconoscimento del Comune cliccato fuori da Melegnano su dati ISTAT locali;
 - modalita "Segui posizione";
 - reset vista;
 - scala metrica dinamica;
