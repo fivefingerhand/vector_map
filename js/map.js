@@ -3,10 +3,12 @@ const INITIAL_ZOOM = 14;
 const DATA_URL = "data/melegnano.geojson";
 
 const map = L.map("map", {
-  zoomControl: true,
+  zoomControl: false,
   preferCanvas: true,
   fadeAnimation: false,
 }).setView(MELEGNANO_CENTER, INITIAL_ZOOM);
+
+L.control.zoom({ position: "bottomright" }).addTo(map);
 
 const baseLayers = {
   streets: L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
