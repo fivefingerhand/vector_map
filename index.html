@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Vector Map - Melegnano</title>
+    <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="css/map.css" />
+  </head>
+  <body>
+    <main id="app" aria-label="Mappa operativa del Comune di Melegnano">
+      <div id="map"></div>
+
+      <section class="toolbar" aria-label="Controlli mappa">
+        <button id="locateButton" class="control-button primary" type="button">
+          La mia posizione
+        </button>
+        <button id="followButton" class="control-button" type="button" aria-pressed="false">
+          Segui posizione
+        </button>
+        <button id="resetButton" class="control-button icon-button" type="button" aria-label="Torna a Melegnano" title="Torna a Melegnano">
+          &#8962;
+        </button>
+      </section>
+
+      <section id="statusPanel" class="status-panel" aria-live="polite">
+        <strong>Melegnano</strong>
+        <span id="locationStatus">Mappa pronta</span>
+      </section>
+
+      <section class="layer-panel" aria-label="Layer">
+        <details>
+          <summary>Layer</summary>
+          <fieldset>
+            <legend>Base</legend>
+            <label>
+              <input name="baseLayer" type="radio" value="streets" checked />
+              Stradale
+            </label>
+            <label>
+              <input name="baseLayer" type="radio" value="satellite" />
+              Satellitare
+            </label>
+          </fieldset>
+          <fieldset>
+            <legend>Overlay</legend>
+          <label>
+            <input id="boundaryLayer" type="checkbox" checked />
+            Confine comunale
+          </label>
+          <label>
+            <input id="maskLayer" type="checkbox" checked />
+            Evidenzia territorio comunale
+          </label>
+          </fieldset>
+        </details>
+      </section>
+    </main>
+
+    <script src="vendor/leaflet/leaflet.js"></script>
+    <script src="data/melegnano.js"></script>
+    <script src="js/map.js"></script>
+  </body>
+</html>

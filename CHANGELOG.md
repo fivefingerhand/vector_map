@@ -1,0 +1,19 @@
+# Changelog
+
+## 2026-08-19
+
+- Creata prima versione statica della web map `vector_map`.
+- Aggiunto confine comunale di Melegnano da ISTAT, codice `015140`.
+- Aggiunta mappa Leaflet con OpenStreetMap.
+- Aggiunta maschera esterna al Comune.
+- Aggiunta geolocalizzazione client-side con accuratezza GPS.
+- Aggiunta verifica dentro/fuori Comune.
+- Aggiunti controlli mobile per posizione, follow GPS, reset vista e layer.
+- Aggiunta documentazione iniziale.
+- Sostituito il layer tile predefinito con CARTO Voyager per evitare blocchi sulle tile OSM standard.
+- Aggiunto `data/melegnano.js` per consentire l'apertura diretta di `index.html`.
+- Inclusa localmente la libreria Leaflet 1.9.4.
+- Aggiunte regole CSS critiche di fallback per evitare tile disordinate se il CSS Leaflet resta in cache o non viene letto subito.
+- Disattivato il fade delle tile durante il caricamento.
+- Sostituito il confine ISTAT generalizzato con il confine ISTAT non generalizzato del Comune `015140`.
+- Aggiunto selettore basemap con livello stradale e livello satellitare Esri World Imagery.

@@ -1,0 +1,35 @@
+# Stato Progetto
+
+## MVP web map
+
+Stato: prima versione funzionante locale.
+
+Completato:
+
+- struttura progetto statica;
+- Leaflet con basemap CARTO Voyager su dati OpenStreetMap;
+- Leaflet incluso localmente in `vendor/leaflet/`;
+- apertura diretta di `index.html` senza fetch del GeoJSON;
+- centro iniziale su Melegnano;
+- confine comunale ISTAT non generalizzato in GeoJSON;
+- maschera semitrasparente sull'area esterna;
+- pulsante "La mia posizione";
+- marker posizione utente;
+- cerchio di accuratezza GPS;
+- verifica dentro/fuori Comune via point-in-polygon client-side;
+- modalita "Segui posizione";
+- reset vista;
+- menu layer minimo;
+- selettore basemap stradale/satellitare;
+- layout mobile-first.
+
+Da verificare su HTTPS:
+
+- geolocalizzazione da iPhone/Safari;
+- geolocalizzazione da Android/Chrome;
+- prestazioni e leggibilita su schermi piccoli.
+
+Non ancora fatto:
+
+- pubblicazione su URL HTTPS;
+- progetto QGIS/PDF.
