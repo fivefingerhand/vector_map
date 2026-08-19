@@ -24,3 +24,4 @@
 - Rimossa Esri World Street Map.
 - Aggiunte varianti CARTO: Voyager, Voyager no nomi, Chiara, Chiara no nomi, Scura, Scura no nomi.
 - Ridotto il README pubblico e spostata la documentazione estesa in un README interno non tracciato.
+- Ridotto il selettore basemap a Voyager con nomi e Satellitare.

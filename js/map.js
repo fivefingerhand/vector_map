@@ -13,11 +13,6 @@ L.control.scale({ position: "bottomright", metric: true, imperial: false }).addT
 
 const baseLayers = {
   cartoVoyager: createCartoLayer("voyager"),
-  cartoVoyagerNoLabels: createCartoLayer("voyager_nolabels"),
-  cartoLight: createCartoLayer("light_all"),
-  cartoLightNoLabels: createCartoLayer("light_nolabels"),
-  cartoDark: createCartoLayer("dark_all"),
-  cartoDarkNoLabels: createCartoLayer("dark_nolabels"),
   satellite: L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {
