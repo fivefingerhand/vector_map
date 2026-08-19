@@ -85,7 +85,7 @@ async function init() {
     maskLayer = L.polygon(buildOutsideMask(municipalityFeature.geometry), {
       stroke: false,
       fillColor: "#1f2933",
-      fillOpacity: 0.22,
+      fillOpacity: 0.32,
       interactive: false,
     }).addTo(map);
     boundaryLayer.bringToFront();
