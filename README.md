@@ -8,6 +8,7 @@ Mappa operativa statica del Comune di Melegnano, pensata per consultazione rapid
 - mostra il confine comunale;
 - evidenzia il territorio comunale con una maschera sull'area esterna;
 - usa CARTO Voyager, basato su dati OpenStreetMap, come cartografia stradale senza chiavi;
+- include Esri World Street Map come alternativa stradale;
 - consente di passare dalla basemap stradale alla basemap satellitare;
 - include Leaflet in locale, senza dipendere da CDN per il codice della mappa;
 - consente zoom, pan e reset vista;
@@ -42,6 +43,7 @@ vector_map/
 
 - Confine comunale: ISTAT, Confini amministrativi 2022 non generalizzati, Comuni WGS84 / UTM Zone 32N, codice Comune `015140`.
 - Basemap stradale: CARTO Voyager, basato su dati OpenStreetMap.
+- Basemap stradale alternativa: Esri World Street Map.
 - Basemap satellitare: Esri World Imagery.
 - Libreria web map: Leaflet 1.9.4, inclusa localmente in `vendor/leaflet/`.
 

@@ -21,3 +21,4 @@
 - Aggiunta scala metrica dinamica vicino ai controlli zoom.
 - Mantenuti solo layer senza chiavi: CARTO Voyager per stradale ed Esri World Imagery per satellitare.
 - Impostata la basemap satellitare come visualizzazione predefinita.
+- Aggiunta Esri World Street Map come terza opzione di basemap.

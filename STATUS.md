@@ -23,6 +23,7 @@ Completato:
 - scala metrica dinamica;
 - menu layer minimo;
 - selettore basemap stradale/satellitare;
+- basemap Esri World Street Map come alternativa stradale;
 - layout mobile-first.
 
 Da verificare su HTTPS:
