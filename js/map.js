@@ -1,7 +1,6 @@
 const MELEGNANO_CENTER = [45.3562426686416, 9.307885207235815];
 const INITIAL_ZOOM = 14;
 const DATA_URL = "data/melegnano.geojson";
-const TRACESTRACK_KEY = getConfiguredKey("tracestrackKey", "tracestrack_key");
 
 const map = L.map("map", {
   zoomControl: false,
@@ -13,7 +12,12 @@ L.control.zoom({ position: "bottomright" }).addTo(map);
 L.control.scale({ position: "bottomright", metric: true, imperial: false }).addTo(map);
 
 const baseLayers = {
-  topo: createTopoLayer(),
+  streets: L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+    subdomains: "abcd",
+    maxZoom: 20,
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  }),
   satellite: L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {
@@ -24,44 +28,7 @@ const baseLayers = {
   ),
 };
 
-let activeBaseLayer = baseLayers.topo.addTo(map);
-
-function createTopoLayer() {
-  if (TRACESTRACK_KEY) {
-    return L.tileLayer(
-      `https://tile.tracestrack.com/topo/{z}/{x}/{y}.png?key=${encodeURIComponent(TRACESTRACK_KEY)}`,
-      {
-        maxZoom: 20,
-        attribution:
-          '&copy; <a href="https://www.tracestrack.com/">Tracestrack</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }
-    );
-  }
-
-  return L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-    subdomains: "abcd",
-    maxZoom: 20,
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  });
-}
-
-function getConfiguredKey(configName, queryName) {
-  const configKey = window.VECTOR_MAP_CONFIG?.[configName] || "";
-
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const queryKey = params.get(queryName) || "";
-    if (queryKey) {
-      window.localStorage.setItem(queryName, queryKey);
-      return queryKey;
-    }
-
-    return window.localStorage.getItem(queryName) || configKey;
-  } catch {
-    return configKey;
-  }
-}
+let activeBaseLayer = baseLayers.streets.addTo(map);
 
 const statusPanel = document.getElementById("statusPanel");
 const locationStatus = document.getElementById("locationStatus");

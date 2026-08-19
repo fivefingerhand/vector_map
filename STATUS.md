@@ -7,7 +7,7 @@ Stato: prima versione funzionante locale.
 Completato:
 
 - struttura progetto statica;
-- Leaflet con basemap Tracestrack Topo configurabile e fallback CARTO Voyager;
+- Leaflet con basemap stradale CARTO Voyager senza chiavi;
 - Leaflet incluso localmente in `vendor/leaflet/`;
 - apertura diretta di `index.html` senza fetch del GeoJSON;
 - centro iniziale su Melegnano;
@@ -21,7 +21,7 @@ Completato:
 - reset vista;
 - scala metrica dinamica;
 - menu layer minimo;
-- selettore basemap topo/satellitare;
+- selettore basemap stradale/satellitare;
 - layout mobile-first.
 
 Da verificare su HTTPS:
