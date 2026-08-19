@@ -27,3 +27,4 @@
 - Ridotto il selettore basemap a Voyager con nomi e Satellitare.
 - Aggiunto dataset locale dei Comuni vicini e popup sul click fuori Melegnano con il Comune di appartenenza.
 - Rimosso il tooltip hover sul confine di Melegnano.
+- Uniformato il click su Melegnano aggiornando il box stato e aggiunta evidenziazione blu del Comune cliccato fuori confine.

@@ -48,6 +48,7 @@ let municipalityFeature;
 let municipalityFeatures = [];
 let boundaryLayer;
 let maskLayer;
+let selectedMunicipalityLayer;
 let userMarker;
 let accuracyCircle;
 let watchId = null;
@@ -140,23 +141,52 @@ map.on("click", (event) => {
   if (!municipalityFeature || municipalityFeatures.length === 0) return;
 
   const point = [event.latlng.lng, event.latlng.lat];
-  if (isPointInGeometry(point, municipalityFeature.geometry)) return;
-
-  const feature = municipalityFeatures.find((candidate) => {
-    return (
-      candidate.properties.istat_code !== municipalityFeature.properties.istat_code &&
-      isPointInGeometry(point, candidate.geometry)
-    );
-  });
+  const feature = findClickedMunicipality(point);
 
   const message = feature ? `Comune di ${feature.properties.name}` : "Comune non disponibile";
   setStatus(message);
+
+  if (!feature || feature.properties.istat_code === municipalityFeature.properties.istat_code) {
+    clearSelectedMunicipality();
+    map.closePopup();
+    return;
+  }
+
+  showSelectedMunicipality(feature);
 
   L.popup({ closeButton: false })
     .setLatLng(event.latlng)
     .setContent(`<strong>${escapeHtml(message)}</strong>`)
     .openOn(map);
 });
+
+function findClickedMunicipality(point) {
+  if (isPointInGeometry(point, municipalityFeature.geometry)) return municipalityFeature;
+  return municipalityFeatures.find((candidate) => isPointInGeometry(point, candidate.geometry));
+}
+
+function showSelectedMunicipality(feature) {
+  clearSelectedMunicipality();
+
+  selectedMunicipalityLayer = L.geoJSON(feature, {
+    style: {
+      color: "#1d4ed8",
+      weight: 2,
+      opacity: 0.9,
+      fillColor: "#2563eb",
+      fillOpacity: 0.24,
+    },
+    interactive: false,
+  }).addTo(map);
+
+  if (boundaryLayer) boundaryLayer.bringToFront();
+}
+
+function clearSelectedMunicipality() {
+  if (!selectedMunicipalityLayer) return;
+  map.removeLayer(selectedMunicipalityLayer);
+  selectedMunicipalityLayer = null;
+}
 
 function escapeHtml(value) {
   return String(value)
