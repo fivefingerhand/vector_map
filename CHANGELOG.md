@@ -26,3 +26,4 @@
 - Ridotto il README pubblico e spostata la documentazione estesa in un README interno non tracciato.
 - Ridotto il selettore basemap a Voyager con nomi e Satellitare.
 - Aggiunto dataset locale dei Comuni vicini e popup sul click fuori Melegnano con il Comune di appartenenza.
+- Rimosso il tooltip hover sul confine di Melegnano.

@@ -89,11 +89,6 @@ async function init() {
     }).addTo(map);
     boundaryLayer.bringToFront();
 
-    boundaryLayer.bindTooltip("Comune di Melegnano", {
-      sticky: true,
-      direction: "top",
-    });
-
     map.fitBounds(boundaryLayer.getBounds(), { padding: [22, 22] });
     map.setZoom(Math.max(map.getZoom(), INITIAL_ZOOM));
   } catch (error) {
