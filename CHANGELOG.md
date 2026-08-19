@@ -20,3 +20,4 @@
 - Aggiunta configurazione minima per GitHub Pages con `.nojekyll`.
 - Aggiunto supporto Tracestrack Topo come basemap predefinita quando e presente `config.js`.
 - Aggiunta scala metrica dinamica vicino ai controlli zoom.
+- Aggiunto supporto a `?tracestrack_key=...` con salvataggio locale nel browser per test su GitHub Pages.

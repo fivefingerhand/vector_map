@@ -1,7 +1,7 @@
 const MELEGNANO_CENTER = [45.3562426686416, 9.307885207235815];
 const INITIAL_ZOOM = 14;
 const DATA_URL = "data/melegnano.geojson";
-const TRACESTRACK_KEY = window.VECTOR_MAP_CONFIG?.tracestrackKey || "";
+const TRACESTRACK_KEY = getConfiguredKey("tracestrackKey", "tracestrack_key");
 
 const map = L.map("map", {
   zoomControl: false,
@@ -44,6 +44,23 @@ function createTopoLayer() {
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
   });
+}
+
+function getConfiguredKey(configName, queryName) {
+  const configKey = window.VECTOR_MAP_CONFIG?.[configName] || "";
+
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const queryKey = params.get(queryName) || "";
+    if (queryKey) {
+      window.localStorage.setItem(queryName, queryKey);
+      return queryKey;
+    }
+
+    return window.localStorage.getItem(queryName) || configKey;
+  } catch {
+    return configKey;
+  }
 }
 
 const statusPanel = document.getElementById("statusPanel");

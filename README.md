@@ -60,6 +60,14 @@ window.VECTOR_MAP_CONFIG = {
 
 `config.js` e escluso da Git per evitare di pubblicare chiavi nel repository. Su GitHub Pages, una chiave frontend e comunque visibile al browser: va quindi limitata dal pannello Tracestrack al dominio `fivefingerhand.github.io`.
 
+In alternativa, per provare il layer su GitHub Pages senza aggiungere `config.js` al repo, aprire una volta:
+
+```text
+https://fivefingerhand.github.io/vector_map/?tracestrack_key=LA_TUA_KEY
+```
+
+La chiave viene salvata nel `localStorage` del browser. Per un link pubblico stabile, la soluzione corretta resta una key Tracestrack limitata al dominio GitHub Pages.
+
 File sorgente ISTAT usato per la conversione:
 
 `https://www.istat.it/storage/cartografia/confini_amministrativi/non_generalizzati/Limiti01012022.zip`
