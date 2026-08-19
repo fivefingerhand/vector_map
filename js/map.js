@@ -12,19 +12,12 @@ L.control.zoom({ position: "bottomright" }).addTo(map);
 L.control.scale({ position: "bottomright", metric: true, imperial: false }).addTo(map);
 
 const baseLayers = {
-  streets: L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-    subdomains: "abcd",
-    maxZoom: 20,
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  }),
-  esriStreets: L.tileLayer(
-    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
-    {
-      maxZoom: 19,
-      attribution: "Tiles &copy; Esri and contributors",
-    }
-  ),
+  cartoVoyager: createCartoLayer("voyager"),
+  cartoVoyagerNoLabels: createCartoLayer("voyager_nolabels"),
+  cartoLight: createCartoLayer("light_all"),
+  cartoLightNoLabels: createCartoLayer("light_nolabels"),
+  cartoDark: createCartoLayer("dark_all"),
+  cartoDarkNoLabels: createCartoLayer("dark_nolabels"),
   satellite: L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {
@@ -36,6 +29,15 @@ const baseLayers = {
 };
 
 let activeBaseLayer = baseLayers.satellite.addTo(map);
+
+function createCartoLayer(style) {
+  return L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/${style}/{z}/{x}/{y}{r}.png`, {
+    subdomains: "abcd",
+    maxZoom: 20,
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  });
+}
 
 const statusPanel = document.getElementById("statusPanel");
 const locationStatus = document.getElementById("locationStatus");
