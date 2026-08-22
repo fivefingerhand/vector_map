@@ -2,4 +2,10 @@
 .DS_Store
 tmp/
 node_modules/
+
+# Local operational documentation for the maintainer/agent.
+AGENTS.md
+PROJECT.md
+STATUS.md
+ROADMAP.md
 README_INTERNAL.md

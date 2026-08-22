@@ -63,3 +63,4 @@
 - Ridotto il selettore basi a due radio mutuamente esclusivi: `Satellite` Esri e `Stradale` CARTO Voyager.
 - Aggiunta `Stradale OSM` come alternativa a `Stradale Voyager`.
 - Aggiunta chiusura automatica del pannello `Layer` quando si clicca fuori dal pannello.
+- Separata la documentazione operativa locale dai file pubblicabili: `STATUS.md`, `AGENTS.md`, `PROJECT.md`, `ROADMAP.md` e `README_INTERNAL.md` restano fuori da Git; `CHANGELOG.md` rimane pubblico.
