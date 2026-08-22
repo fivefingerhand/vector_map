@@ -53,3 +53,5 @@
 - Spostato `Confine catastale Melegnano` negli overlay e acceso di default insieme a `Evidenzia territorio comunale`.
 - Rimosso definitivamente il layer `Confine comunale ISTAT` dalla UI e dal codice.
 - Rimossi i file `data/melegnano.geojson` e `data/melegnano.js`, non piu usati a runtime.
+- Data priorita al perimetro catastale di Melegnano nel riconoscimento al click, prima degli altri comuni catastali e del fallback ISTAT.
+- Disattivato il fallback ISTAT dentro la copertura catastale locale per evitare identificazioni incoerenti vicino ai confini.

@@ -48,6 +48,7 @@ const cadastralZoningToggle = document.getElementById("cadastralZoningLayer");
 let municipalityFeature;
 let municipalityFeatures = [];
 let cadastralMunicipalityFeatures = [];
+let cadastralCoverageBounds;
 let maskLayer;
 let cadastralZoningLayer;
 let cadastralBoundaryLayer;
@@ -90,6 +91,7 @@ async function init() {
     municipalityFeature = cadastralBoundaryDisplayGeojson.features[0];
     cadastralMunicipalityFeatures = cadastralMunicipalitiesDisplayGeojson.features || [];
     municipalityFeatures = municipalitiesGeojson.features || [];
+    cadastralCoverageBounds = L.geoJSON(cadastralMunicipalitiesDisplayGeojson).getBounds();
 
     cadastralBoundaryLayer = L.geoJSON(cadastralBoundaryDisplayGeojson, {
       style: {
@@ -192,10 +194,15 @@ map.on("click", (event) => {
 });
 
 function findClickedMunicipality(point) {
+  if (isPointInGeometry(point, municipalityFeature.geometry)) return municipalityFeature;
+
   const cadastralFeature = cadastralMunicipalityFeatures.find((candidate) =>
     isPointInGeometry(point, candidate.geometry)
   );
   if (cadastralFeature) return cadastralFeature;
+
+  if (cadastralCoverageBounds?.contains([point[1], point[0]])) return null;
+
   return municipalityFeatures.find((candidate) => isPointInGeometry(point, candidate.geometry));
 }
 
