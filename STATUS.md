@@ -7,8 +7,8 @@ Stato: prima versione funzionante locale.
 Completato:
 
 - struttura progetto statica;
-- Leaflet con CARTO Voyager, Ortofoto Lombardia 2024 ed Esri World Imagery;
-- Ortofoto Lombardia 2024 attiva di default;
+- Leaflet con Esri World Imagery e CARTO Voyager;
+- Esri World Imagery attiva di default;
 - Leaflet incluso localmente in `vendor/leaflet/`;
 - apertura diretta di `index.html` senza fetch del GeoJSON;
 - centro iniziale su Melegnano;
@@ -23,7 +23,7 @@ Completato:
 - reset vista;
 - scala metrica dinamica;
 - menu layer minimo;
-- selettore basemap Satellite/Stradale/Satellite Esri;
+- selettore basemap Satellite/Stradale;
 - confine operativo basato sui fogli catastali Melegnano `F100` da 1 a 16;
 - maschera e verifica dentro/fuori basate sui fogli catastali Melegnano;
 - riconoscimento dei comuni nell'area di Melegnano basato sui fogli catastali WFS raggruppati per comune;
@@ -124,7 +124,7 @@ Avvio e interfaccia
  Apertura da iPhone/Safari e Android/Chrome su HTTPS.
  Satellitare, confine rosso e maschera visibili all’avvio.
  Attivazione/disattivazione dei due overlay senza errori.
- Cambio Satellite/Stradale/Satellite Esri corretto.
+ Cambio Satellite/Stradale corretto.
  Reset riporta all’intero territorio di Melegnano.
  Nessun rallentamento evidente su telefono meno recente.
 Click sulla mappa
@@ -175,7 +175,7 @@ Verifiche automatiche gia eseguite:
 - vecchio messaggio "Posizione prossima al confine": assente.
 - suite browser desktop/mobile: nessun errore console o page error;
 - click simulati su centro Melegnano, linea catastale, Carpiano e San Donato Milanese: ok;
-- toggle overlay, maschera e cambio basemap: ok;
+- toggle overlay, maschera e cambio basi: ok;
 - layout mobile: corrette sovrapposizioni tra toolbar, zoom e attribuzione Leaflet;
 - favicon inline aggiunto per eliminare il 404 in console;
 - cache-bust aggiornato per `css/map.css` e `js/map.js`.
@@ -188,7 +188,7 @@ Da proseguire:
 
 ## Ortofoto Lombardia 2024
 
-Stato: integrata come base predefinita.
+Stato: rimossa dalla UI operativa per tempi di caricamento iniziale non adeguati.
 
 Servizio ufficiale verificato:
 
@@ -206,22 +206,22 @@ Servizio ufficiale verificato:
 - HTTPS verificato: ok;
 - attribuzione inserita: `Ortofoto AGEA 2024 - Regione Lombardia, copyright AGEA - licenza d'uso concessa a Regione Lombardia`.
 
-Comportamento:
+Comportamento attuale:
 
-- base predefinita: `Satellite` = Ortofoto Lombardia 2024;
-- alternative selezionabili: `Stradale` = CARTO Voyager, `Satellite Esri` = Esri World Imagery;
-- fallback automatico su `Satellite Esri` dopo errori ripetuti di tile del WMS regionale.
+- base predefinita: `Satellite` = Esri World Imagery;
+- alternativa selezionabile: `Stradale` = CARTO Voyager;
+- non ci sono basi sovrapposte o fusione tra layer;
+- il fallback automatico dall'Ortofoto Lombardia non e piu necessario perche il WMS regionale non viene caricato a runtime.
 
 Verifiche eseguite:
 
 - `GetCapabilities` WMS: ok;
 - `GetCapabilities` WMTS: ok, ma solo `EPSG:7791`;
 - `GetMap` WMS su area Melegnano: PNG reale restituito;
-- pagina locale: Ortofoto Lombardia caricata all'avvio con 30 tile WMS `200 image/png`;
-- radio base e layer attivo coerenti;
-- cambi base `Satellite`, `Stradale`, `Satellite Esri` in entrambe le direzioni: ok;
-- una sola base attiva alla volta: ok;
+- pagina locale: Esri World Imagery caricata all'avvio;
+- radio basi e layer attivo coerenti;
+- cambio `Satellite`/`Stradale`: ok;
 - confine catastale, maschera, marker GPS, accuratezza e comune selezionato preservati durante il cambio base;
-- fallback simulato dopo soglia errori tile: passa una sola volta a `Satellite Esri`, aggiorna radio e messaggio stato;
+- nessun fallback ortofoto attivo a runtime;
 - console browser desktop: nessun errore;
 - vista centrata su Melegnano: ok.

@@ -58,3 +58,6 @@
 - Integrata l'Ortofoto Lombardia 2024 ufficiale come base WMS predefinita.
 - Mantenuti CARTO Voyager come base stradale ed Esri World Imagery come base satellitare alternativa.
 - Aggiunto fallback automatico una sola volta da Ortofoto Lombardia 2024 a Esri World Imagery dopo errori ripetuti di tile.
+- Rimossa l'Ortofoto Lombardia 2024 dalla UI per tempi di caricamento iniziale non adeguati.
+- Ripristinata Esri World Imagery come base satellitare predefinita.
+- Ridotto il selettore basi a due radio mutuamente esclusivi: `Satellite` Esri e `Stradale` CARTO Voyager.

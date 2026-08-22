@@ -5,9 +5,6 @@ const CADASTRAL_MUNICIPALITIES_DATA_URL = "data/cadastral_municipalities_melegna
 const MUNICIPALITIES_DATA_URL = "data/municipalities.geojson";
 const BOUNDARY_LINE_TOLERANCE_METERS = 0.01;
 const LOCAL_CADASTRAL_NEAREST_METERS = 80;
-const LOMBARDY_ORTHOPHOTO_WMS_URL =
-  "https://www.cartografia.servizirl.it/arcgis5/services/BaseMap/Ortofoto2024/ImageServer/WMSServer";
-const LOMBARDY_ORTHOPHOTO_TILE_ERROR_THRESHOLD = 4;
 
 const map = L.map("map", {
   zoomControl: false,
@@ -19,20 +16,7 @@ L.control.zoom({ position: "bottomright" }).addTo(map);
 L.control.scale({ position: "bottomright", metric: true, imperial: false }).addTo(map);
 
 const baseLayers = {
-  lombardyOrthophoto: L.tileLayer.wms(LOMBARDY_ORTHOPHOTO_WMS_URL, {
-    layers: "0",
-    styles: "",
-    format: "image/png",
-    transparent: false,
-    version: "1.3.0",
-    crs: L.CRS.EPSG4326,
-    minZoom: 7,
-    maxZoom: 22,
-    attribution:
-      "Ortofoto AGEA 2024 - Regione Lombardia, copyright AGEA - licenza d'uso concessa a Regione Lombardia",
-  }),
-  cartoVoyager: createCartoLayer("voyager"),
-  esriWorldImagery: L.tileLayer(
+  satellite: L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {
       maxZoom: 19,
@@ -40,35 +24,18 @@ const baseLayers = {
         "Tiles &copy; Esri, Maxar, Earthstar Geographics, and the GIS User Community",
     }
   ),
+  road: createCartoLayer("voyager"),
 };
 
-let activeBaseLayer = baseLayers.lombardyOrthophoto.addTo(map);
-let lombardyOrthophotoTileErrors = 0;
-let lombardyOrthophotoFallbackUsed = false;
+let activeBaseLayer = baseLayers.satellite.addTo(map);
 
-baseLayers.lombardyOrthophoto.on("tileload", () => {
-  lombardyOrthophotoTileErrors = 0;
-});
-
-baseLayers.lombardyOrthophoto.on("tileerror", () => {
-  if (activeBaseLayer !== baseLayers.lombardyOrthophoto || lombardyOrthophotoFallbackUsed) return;
-
-  lombardyOrthophotoTileErrors += 1;
-  if (lombardyOrthophotoTileErrors < LOMBARDY_ORTHOPHOTO_TILE_ERROR_THRESHOLD) return;
-
-  lombardyOrthophotoFallbackUsed = true;
-  setBaseLayer("esriWorldImagery", {
-    statusMessage: "Ortofoto regionale non disponibile: caricata la base Esri",
-    isFallback: true,
-  });
-});
-
-function createCartoLayer(style) {
+function createCartoLayer(style, options = {}) {
   return L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/${style}/{z}/{x}/{y}{r}.png`, {
     subdomains: "abcd",
     maxZoom: 20,
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    ...options,
   });
 }
 
@@ -482,21 +449,15 @@ function setLayerVisibility(layer, visible) {
   }
 }
 
-function setBaseLayer(layerName, options = {}) {
+function setBaseLayer(layerName) {
   const nextLayer = baseLayers[layerName];
   if (!nextLayer || nextLayer === activeBaseLayer) return;
 
+  activeBaseLayer.setOpacity(1);
   map.removeLayer(activeBaseLayer);
   activeBaseLayer = nextLayer.addTo(map);
-  syncBaseLayerInput(layerName);
 
-  if (options.statusMessage) setStatus(options.statusMessage, options.isFallback);
-}
-
-function syncBaseLayerInput(layerName) {
-  baseLayerInputs.forEach((input) => {
-    input.checked = input.value === layerName;
-  });
+  bringCadastralZoningToFront();
 }
 
 function buildOutsideMask(geometry) {
