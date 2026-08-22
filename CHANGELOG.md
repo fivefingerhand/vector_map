@@ -64,3 +64,4 @@
 - Aggiunta `Stradale OSM` come alternativa a `Stradale Voyager`.
 - Aggiunta chiusura automatica del pannello `Layer` quando si clicca fuori dal pannello.
 - Separata la documentazione operativa locale dai file pubblicabili: `STATUS.md`, `AGENTS.md`, `PROJECT.md`, `ROADMAP.md` e `README_INTERNAL.md` restano fuori da Git; `CHANGELOG.md` rimane pubblico.
+- Spostate le esclusioni dei documenti operativi locali da `.gitignore` a `.git/info/exclude`, mantenendo pubblico solo un `.gitignore` minimale per file generici.
