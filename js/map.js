@@ -3,6 +3,11 @@ const INITIAL_ZOOM = 14;
 const CADASTRAL_BOUNDARY_DATA_URL = "data/cadastral_boundary_melegnano.geojson";
 const CADASTRAL_MUNICIPALITIES_DATA_URL = "data/cadastral_municipalities_melegnano_area.geojson";
 const MUNICIPALITIES_DATA_URL = "data/municipalities.geojson";
+const BOUNDARY_LINE_TOLERANCE_METERS = 0.01;
+const LOCAL_CADASTRAL_NEAREST_METERS = 80;
+const LOMBARDY_ORTHOPHOTO_WMS_URL =
+  "https://www.cartografia.servizirl.it/arcgis5/services/BaseMap/Ortofoto2024/ImageServer/WMSServer";
+const LOMBARDY_ORTHOPHOTO_TILE_ERROR_THRESHOLD = 4;
 
 const map = L.map("map", {
   zoomControl: false,
@@ -14,8 +19,20 @@ L.control.zoom({ position: "bottomright" }).addTo(map);
 L.control.scale({ position: "bottomright", metric: true, imperial: false }).addTo(map);
 
 const baseLayers = {
+  lombardyOrthophoto: L.tileLayer.wms(LOMBARDY_ORTHOPHOTO_WMS_URL, {
+    layers: "0",
+    styles: "",
+    format: "image/png",
+    transparent: false,
+    version: "1.3.0",
+    crs: L.CRS.EPSG4326,
+    minZoom: 7,
+    maxZoom: 22,
+    attribution:
+      "Ortofoto AGEA 2024 - Regione Lombardia, copyright AGEA - licenza d'uso concessa a Regione Lombardia",
+  }),
   cartoVoyager: createCartoLayer("voyager"),
-  satellite: L.tileLayer(
+  esriWorldImagery: L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {
       maxZoom: 19,
@@ -25,7 +42,26 @@ const baseLayers = {
   ),
 };
 
-let activeBaseLayer = baseLayers.satellite.addTo(map);
+let activeBaseLayer = baseLayers.lombardyOrthophoto.addTo(map);
+let lombardyOrthophotoTileErrors = 0;
+let lombardyOrthophotoFallbackUsed = false;
+
+baseLayers.lombardyOrthophoto.on("tileload", () => {
+  lombardyOrthophotoTileErrors = 0;
+});
+
+baseLayers.lombardyOrthophoto.on("tileerror", () => {
+  if (activeBaseLayer !== baseLayers.lombardyOrthophoto || lombardyOrthophotoFallbackUsed) return;
+
+  lombardyOrthophotoTileErrors += 1;
+  if (lombardyOrthophotoTileErrors < LOMBARDY_ORTHOPHOTO_TILE_ERROR_THRESHOLD) return;
+
+  lombardyOrthophotoFallbackUsed = true;
+  setBaseLayer("esriWorldImagery", {
+    statusMessage: "Ortofoto regionale non disponibile: caricata la base Esri",
+    isFallback: true,
+  });
+});
 
 function createCartoLayer(style) {
   return L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/${style}/{z}/{x}/{y}{r}.png`, {
@@ -48,7 +84,6 @@ const cadastralZoningToggle = document.getElementById("cadastralZoningLayer");
 let municipalityFeature;
 let municipalityFeatures = [];
 let cadastralMunicipalityFeatures = [];
-let cadastralCoverageBounds;
 let maskLayer;
 let cadastralZoningLayer;
 let cadastralBoundaryLayer;
@@ -91,7 +126,6 @@ async function init() {
     municipalityFeature = cadastralBoundaryDisplayGeojson.features[0];
     cadastralMunicipalityFeatures = cadastralMunicipalitiesDisplayGeojson.features || [];
     municipalityFeatures = municipalitiesGeojson.features || [];
-    cadastralCoverageBounds = L.geoJSON(cadastralMunicipalitiesDisplayGeojson).getBounds();
 
     cadastralBoundaryLayer = L.geoJSON(cadastralBoundaryDisplayGeojson, {
       style: {
@@ -194,16 +228,53 @@ map.on("click", (event) => {
 });
 
 function findClickedMunicipality(point) {
-  if (isPointInGeometry(point, municipalityFeature.geometry)) return municipalityFeature;
+  if (
+    isPointInGeometry(point, municipalityFeature.geometry) ||
+    distanceToGeometryBoundaryMeters(point, municipalityFeature.geometry) <=
+      BOUNDARY_LINE_TOLERANCE_METERS
+  ) {
+    return municipalityFeature;
+  }
 
-  const cadastralFeature = cadastralMunicipalityFeatures.find((candidate) =>
+  const cadastralMatches = cadastralMunicipalityFeatures.filter((candidate) =>
     isPointInGeometry(point, candidate.geometry)
   );
-  if (cadastralFeature) return cadastralFeature;
 
-  if (cadastralCoverageBounds?.contains([point[1], point[0]])) return null;
+  if (cadastralMatches.length > 1) return closestFeatureByBoundaryDistance(point, cadastralMatches);
 
-  return municipalityFeatures.find((candidate) => isPointInGeometry(point, candidate.geometry));
+  if (cadastralMatches.length === 1) return cadastralMatches[0];
+
+  const nearestCadastralFeature = closestFeatureByBoundaryDistance(
+    point,
+    cadastralMunicipalityFeatures.filter(
+      (candidate) => !isMelegnanoOperationalFeature(candidate)
+    )
+  );
+  const nearestCadastralDistance = nearestCadastralFeature
+    ? distanceToGeometryBoundaryMeters(point, nearestCadastralFeature.geometry)
+    : Infinity;
+  if (nearestCadastralDistance <= LOCAL_CADASTRAL_NEAREST_METERS) return nearestCadastralFeature;
+
+  const fallbackFeature = municipalityFeatures.find((candidate) =>
+    isPointInGeometry(point, candidate.geometry)
+  );
+  if (!fallbackFeature || isMelegnanoName(fallbackFeature)) return null;
+  return fallbackFeature;
+}
+
+function closestFeatureByBoundaryDistance(point, features) {
+  let closestFeature = null;
+  let closestDistance = Infinity;
+
+  features.forEach((feature) => {
+    const distance = distanceToGeometryBoundaryMeters(point, feature.geometry);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestFeature = feature;
+    }
+  });
+
+  return closestFeature;
 }
 
 function showSelectedMunicipality(feature) {
@@ -232,6 +303,17 @@ function clearSelectedMunicipality() {
 
 function municipalityKey(feature) {
   return feature.properties.administrative_unit || feature.properties.istat_code || feature.properties.name;
+}
+
+function isMelegnanoOperationalFeature(feature) {
+  return (
+    municipalityFeature &&
+    municipalityKey(feature) === municipalityKey(municipalityFeature)
+  );
+}
+
+function isMelegnanoName(feature) {
+  return feature.properties.name?.toLowerCase() === "melegnano";
 }
 
 function stripInteriorRingsFromFeatureCollection(featureCollection) {
@@ -354,8 +436,11 @@ function updateUserLocation(position, centerMap) {
     map.setView(latlng, Math.max(map.getZoom(), 16), { animate: true });
   }
 
+  const point = [latlng[1], latlng[0]];
   const inside = municipalityFeature
-    ? isPointInGeometry([latlng[1], latlng[0]], municipalityFeature.geometry)
+    ? isPointInGeometry(point, municipalityFeature.geometry) ||
+      distanceToGeometryBoundaryMeters(point, municipalityFeature.geometry) <=
+        BOUNDARY_LINE_TOLERANCE_METERS
     : null;
 
   if (inside === null) {
@@ -397,12 +482,21 @@ function setLayerVisibility(layer, visible) {
   }
 }
 
-function setBaseLayer(layerName) {
+function setBaseLayer(layerName, options = {}) {
   const nextLayer = baseLayers[layerName];
   if (!nextLayer || nextLayer === activeBaseLayer) return;
 
   map.removeLayer(activeBaseLayer);
   activeBaseLayer = nextLayer.addTo(map);
+  syncBaseLayerInput(layerName);
+
+  if (options.statusMessage) setStatus(options.statusMessage, options.isFallback);
+}
+
+function syncBaseLayerInput(layerName) {
+  baseLayerInputs.forEach((input) => {
+    input.checked = input.value === layerName;
+  });
 }
 
 function buildOutsideMask(geometry) {
@@ -424,6 +518,53 @@ function isPointInGeometry(point, geometry) {
     return geometry.coordinates.some((polygon) => isPointInPolygon(point, polygon));
   }
   return null;
+}
+
+function distanceToGeometryBoundaryMeters(point, geometry) {
+  const rings =
+    geometry.type === "Polygon"
+      ? geometry.coordinates
+      : geometry.type === "MultiPolygon"
+        ? geometry.coordinates.flat()
+        : [];
+
+  if (rings.length === 0) return Infinity;
+  return Math.min(...rings.map((ring) => distanceToRingMeters(point, ring)));
+}
+
+function distanceToRingMeters(point, ring) {
+  if (ring.length < 2) return Infinity;
+
+  let minDistance = Infinity;
+  for (let index = 0; index < ring.length; index++) {
+    const start = ring[index];
+    const end = ring[(index + 1) % ring.length];
+    minDistance = Math.min(minDistance, distanceToSegmentMeters(point, start, end));
+  }
+  return minDistance;
+}
+
+function distanceToSegmentMeters(point, start, end) {
+  const [px, py] = projectAroundPoint(point, point);
+  const [x1, y1] = projectAroundPoint(start, point);
+  const [x2, y2] = projectAroundPoint(end, point);
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const segmentLengthSquared = dx * dx + dy * dy;
+
+  if (segmentLengthSquared === 0) return Math.hypot(px - x1, py - y1);
+
+  const rawT = ((px - x1) * dx + (py - y1) * dy) / segmentLengthSquared;
+  const t = Math.max(0, Math.min(1, rawT));
+  return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+}
+
+function projectAroundPoint(coordinate, origin) {
+  const [lng, lat] = coordinate;
+  const [originLng, originLat] = origin;
+  const metersPerDegreeLat = 111320;
+  const metersPerDegreeLng = metersPerDegreeLat * Math.cos((originLat * Math.PI) / 180);
+  return [(lng - originLng) * metersPerDegreeLng, (lat - originLat) * metersPerDegreeLat];
 }
 
 function isPointInPolygon(point, polygon) {

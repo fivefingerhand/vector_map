@@ -4,8 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Vector Map - Melegnano</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=20260819" />
-    <link rel="stylesheet" href="css/map.css?v=20260822" />
+    <link rel="stylesheet" href="css/map.css?v=20260822b" />
   </head>
   <body>
     <main id="app" aria-label="Mappa operativa del Comune di Melegnano">
@@ -34,12 +35,16 @@
           <fieldset>
             <legend>Base</legend>
             <label>
-              <input name="baseLayer" type="radio" value="cartoVoyager" />
-              Voyager
+              <input name="baseLayer" type="radio" value="lombardyOrthophoto" checked />
+              Satellite
             </label>
             <label>
-              <input name="baseLayer" type="radio" value="satellite" checked />
-              Satellitare
+              <input name="baseLayer" type="radio" value="cartoVoyager" />
+              Stradale
+            </label>
+            <label>
+              <input name="baseLayer" type="radio" value="esriWorldImagery" />
+              Satellite Esri
             </label>
           </fieldset>
           <fieldset>
@@ -61,6 +66,6 @@
     <script src="data/cadastral_boundary_melegnano.js?v=20260822"></script>
     <script src="data/cadastral_municipalities_melegnano_area.js?v=20260822"></script>
     <script src="data/municipalities.js?v=20260819"></script>
-    <script src="js/map.js?v=20260822b"></script>
+    <script src="js/map.js?v=20260822d"></script>
   </body>
 </html>

@@ -224,6 +224,7 @@ body {
 
 @media (max-width: 420px) {
   .toolbar {
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 24px);
     grid-template-columns: 1fr 48px;
   }
 
@@ -239,5 +240,10 @@ body {
 
   .layer-panel {
     top: calc(max(12px, env(safe-area-inset-top)) + 72px);
+  }
+
+  .leaflet-control-zoom,
+  .leaflet-control-scale {
+    margin-bottom: 140px !important;
   }
 }

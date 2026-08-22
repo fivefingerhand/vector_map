@@ -55,3 +55,6 @@
 - Rimossi i file `data/melegnano.geojson` e `data/melegnano.js`, non piu usati a runtime.
 - Data priorita al perimetro catastale di Melegnano nel riconoscimento al click, prima degli altri comuni catastali e del fallback ISTAT.
 - Disattivato il fallback ISTAT dentro la copertura catastale locale per evitare identificazioni incoerenti vicino ai confini.
+- Integrata l'Ortofoto Lombardia 2024 ufficiale come base WMS predefinita.
+- Mantenuti CARTO Voyager come base stradale ed Esri World Imagery come base satellitare alternativa.
+- Aggiunto fallback automatico una sola volta da Ortofoto Lombardia 2024 a Esri World Imagery dopo errori ripetuti di tile.
