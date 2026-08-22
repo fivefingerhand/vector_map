@@ -24,7 +24,12 @@ const baseLayers = {
         "Tiles &copy; Esri, Maxar, Earthstar Geographics, and the GIS User Community",
     }
   ),
-  road: createCartoLayer("voyager"),
+  roadVoyager: createCartoLayer("voyager"),
+  roadOsm: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    subdomains: "abc",
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }),
 };
 
 let activeBaseLayer = baseLayers.satellite.addTo(map);

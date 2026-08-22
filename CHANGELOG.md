@@ -61,3 +61,4 @@
 - Rimossa l'Ortofoto Lombardia 2024 dalla UI per tempi di caricamento iniziale non adeguati.
 - Ripristinata Esri World Imagery come base satellitare predefinita.
 - Ridotto il selettore basi a due radio mutuamente esclusivi: `Satellite` Esri e `Stradale` CARTO Voyager.
+- Aggiunta `Stradale OSM` come alternativa a `Stradale Voyager`.

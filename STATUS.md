@@ -7,7 +7,7 @@ Stato: prima versione funzionante locale.
 Completato:
 
 - struttura progetto statica;
-- Leaflet con Esri World Imagery e CARTO Voyager;
+- Leaflet con Esri World Imagery, CARTO Voyager e OpenStreetMap standard;
 - Esri World Imagery attiva di default;
 - Leaflet incluso localmente in `vendor/leaflet/`;
 - apertura diretta di `index.html` senza fetch del GeoJSON;
@@ -23,7 +23,7 @@ Completato:
 - reset vista;
 - scala metrica dinamica;
 - menu layer minimo;
-- selettore basemap Satellite/Stradale;
+- selettore basemap Satellite/Stradale Voyager/Stradale OSM;
 - confine operativo basato sui fogli catastali Melegnano `F100` da 1 a 16;
 - maschera e verifica dentro/fuori basate sui fogli catastali Melegnano;
 - riconoscimento dei comuni nell'area di Melegnano basato sui fogli catastali WFS raggruppati per comune;
@@ -124,7 +124,7 @@ Avvio e interfaccia
  Apertura da iPhone/Safari e Android/Chrome su HTTPS.
  Satellitare, confine rosso e maschera visibili all’avvio.
  Attivazione/disattivazione dei due overlay senza errori.
- Cambio Satellite/Stradale corretto.
+ Cambio basi stradali e satellitare corretto.
  Reset riporta all’intero territorio di Melegnano.
  Nessun rallentamento evidente su telefono meno recente.
 Click sulla mappa
@@ -209,7 +209,7 @@ Servizio ufficiale verificato:
 Comportamento attuale:
 
 - base predefinita: `Satellite` = Esri World Imagery;
-- alternativa selezionabile: `Stradale` = CARTO Voyager;
+- alternative selezionabili: `Stradale Voyager` = CARTO Voyager, `Stradale OSM` = OpenStreetMap standard;
 - non ci sono basi sovrapposte o fusione tra layer;
 - il fallback automatico dall'Ortofoto Lombardia non e piu necessario perche il WMS regionale non viene caricato a runtime.
 
@@ -220,7 +220,7 @@ Verifiche eseguite:
 - `GetMap` WMS su area Melegnano: PNG reale restituito;
 - pagina locale: Esri World Imagery caricata all'avvio;
 - radio basi e layer attivo coerenti;
-- cambio `Satellite`/`Stradale`: ok;
+- cambio `Satellite`/`Stradale Voyager`/`Stradale OSM`: ok;
 - confine catastale, maschera, marker GPS, accuratezza e comune selezionato preservati durante il cambio base;
 - nessun fallback ortofoto attivo a runtime;
 - console browser desktop: nessun errore;
