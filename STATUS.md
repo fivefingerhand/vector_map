@@ -185,6 +185,8 @@ Da proseguire:
 - test click manuali nei tratti in cui catastale e vecchio ISTAT differiscono;
 - test su mobile/HTTPS della geolocalizzazione;
 - eventuale verifica dei punti segnalati dall'utente, se disponibili come coordinate o screenshot.
+- valutare uno strumento di misura lineare: attivazione modalita misura, click su due punti, disegno della linea con lunghezza calcolata automaticamente, comando gomma per rimuoverla; in alternativa la linea resta temporanea e sparisce al refresh della pagina.
+- valutare un pulsante `Copia GPS` o simile: copia negli appunti le coordinate GPS correnti dell'utente, cosi da geolocalizzare definitivamente un punto rilevato sul posto.
 
 ## Ortofoto Lombardia 2024
 

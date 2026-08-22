@@ -49,6 +49,8 @@ const locationStatus = document.getElementById("locationStatus");
 const locateButton = document.getElementById("locateButton");
 const followButton = document.getElementById("followButton");
 const resetButton = document.getElementById("resetButton");
+const layerPanel = document.querySelector(".layer-panel");
+const layerPanelDetails = layerPanel.querySelector("details");
 const baseLayerInputs = document.querySelectorAll('input[name="baseLayer"]');
 const maskToggle = document.getElementById("maskLayer");
 const cadastralZoningToggle = document.getElementById("cadastralZoningLayer");
@@ -167,6 +169,11 @@ maskToggle.addEventListener("change", () => {
 cadastralZoningToggle.addEventListener("change", () => {
   setLayerVisibility(cadastralZoningLayer, cadastralZoningToggle.checked);
   if (cadastralZoningToggle.checked) bringCadastralZoningToFront();
+});
+
+document.addEventListener("pointerdown", (event) => {
+  if (!layerPanelDetails.open || layerPanel.contains(event.target)) return;
+  layerPanelDetails.open = false;
 });
 
 map.on("click", (event) => {

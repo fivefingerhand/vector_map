@@ -62,3 +62,4 @@
 - Ripristinata Esri World Imagery come base satellitare predefinita.
 - Ridotto il selettore basi a due radio mutuamente esclusivi: `Satellite` Esri e `Stradale` CARTO Voyager.
 - Aggiunta `Stradale OSM` come alternativa a `Stradale Voyager`.
+- Aggiunta chiusura automatica del pannello `Layer` quando si clicca fuori dal pannello.
