@@ -1,6 +1,7 @@
 const MELEGNANO_CENTER = [45.3562426686416, 9.307885207235815];
 const INITIAL_ZOOM = 14;
-const DATA_URL = "data/melegnano.geojson";
+const CADASTRAL_BOUNDARY_DATA_URL = "data/cadastral_boundary_melegnano.geojson";
+const CADASTRAL_MUNICIPALITIES_DATA_URL = "data/cadastral_municipalities_melegnano_area.geojson";
 const MUNICIPALITIES_DATA_URL = "data/municipalities.geojson";
 
 const map = L.map("map", {
@@ -41,14 +42,17 @@ const locateButton = document.getElementById("locateButton");
 const followButton = document.getElementById("followButton");
 const resetButton = document.getElementById("resetButton");
 const baseLayerInputs = document.querySelectorAll('input[name="baseLayer"]');
-const boundaryToggle = document.getElementById("boundaryLayer");
 const maskToggle = document.getElementById("maskLayer");
+const cadastralZoningToggle = document.getElementById("cadastralZoningLayer");
 
 let municipalityFeature;
 let municipalityFeatures = [];
-let boundaryLayer;
+let cadastralMunicipalityFeatures = [];
 let maskLayer;
+let cadastralZoningLayer;
+let cadastralBoundaryLayer;
 let selectedMunicipalityLayer;
+let selectedMunicipalityKey = null;
 let userMarker;
 let accuracyCircle;
 let watchId = null;
@@ -64,33 +68,52 @@ init();
 
 async function init() {
   try {
-    const [geojson, municipalitiesGeojson] = await Promise.all([
-      window.MELEGNANO_GEOJSON || loadGeojson(DATA_URL),
-      window.MUNICIPALITIES_GEOJSON || loadGeojson(MUNICIPALITIES_DATA_URL),
-    ]);
+    const [
+      cadastralBoundaryGeojson,
+      cadastralMunicipalitiesGeojson,
+      municipalitiesGeojson,
+    ] =
+      await Promise.all([
+        window.MELEGNANO_CADASTRAL_BOUNDARY_GEOJSON || loadGeojson(CADASTRAL_BOUNDARY_DATA_URL),
+        window.CADASTRAL_MUNICIPALITIES_MELEGNANO_AREA_GEOJSON ||
+          loadGeojson(CADASTRAL_MUNICIPALITIES_DATA_URL),
+        window.MUNICIPALITIES_GEOJSON || loadGeojson(MUNICIPALITIES_DATA_URL),
+      ]);
 
-    municipalityFeature = geojson.features[0];
+    const cadastralBoundaryDisplayGeojson = stripInteriorRingsFromFeatureCollection(
+      cadastralBoundaryGeojson
+    );
+    const cadastralMunicipalitiesDisplayGeojson = stripInteriorRingsFromFeatureCollection(
+      cadastralMunicipalitiesGeojson
+    );
+
+    municipalityFeature = cadastralBoundaryDisplayGeojson.features[0];
+    cadastralMunicipalityFeatures = cadastralMunicipalitiesDisplayGeojson.features || [];
     municipalityFeatures = municipalitiesGeojson.features || [];
 
-    boundaryLayer = L.geoJSON(geojson, {
+    cadastralBoundaryLayer = L.geoJSON(cadastralBoundaryDisplayGeojson, {
       style: {
         color: "#b91c1c",
         weight: 4,
         opacity: 1,
-        fillColor: "#ffffff",
-        fillOpacity: 0.02,
+        fill: false,
+        lineCap: "round",
+        lineJoin: "round",
       },
-    }).addTo(map);
+    });
+
+    cadastralZoningLayer = L.layerGroup([cadastralBoundaryLayer]).addTo(map);
 
     maskLayer = L.polygon(buildOutsideMask(municipalityFeature.geometry), {
       stroke: false,
       fillColor: "#1f2933",
       fillOpacity: 0.32,
       interactive: false,
-    }).addTo(map);
-    boundaryLayer.bringToFront();
+    });
+    if (maskToggle.checked) maskLayer.addTo(map);
+    bringCadastralZoningToFront();
 
-    map.fitBounds(boundaryLayer.getBounds(), { padding: [22, 22] });
+    map.fitBounds(cadastralBoundaryLayer.getBounds(), { padding: [22, 22] });
     map.setZoom(Math.max(map.getZoom(), INITIAL_ZOOM));
   } catch (error) {
     console.error(error);
@@ -115,8 +138,8 @@ followButton.addEventListener("click", () => {
 });
 
 resetButton.addEventListener("click", () => {
-  if (boundaryLayer) {
-    map.fitBounds(boundaryLayer.getBounds(), { padding: [22, 22] });
+  if (cadastralBoundaryLayer) {
+    map.fitBounds(cadastralBoundaryLayer.getBounds(), { padding: [22, 22] });
   } else {
     map.setView(MELEGNANO_CENTER, INITIAL_ZOOM);
   }
@@ -129,12 +152,13 @@ baseLayerInputs.forEach((input) => {
   });
 });
 
-boundaryToggle.addEventListener("change", () => {
-  setLayerVisibility(boundaryLayer, boundaryToggle.checked);
-});
-
 maskToggle.addEventListener("change", () => {
   setLayerVisibility(maskLayer, maskToggle.checked);
+});
+
+cadastralZoningToggle.addEventListener("change", () => {
+  setLayerVisibility(cadastralZoningLayer, cadastralZoningToggle.checked);
+  if (cadastralZoningToggle.checked) bringCadastralZoningToFront();
 });
 
 map.on("click", (event) => {
@@ -146,7 +170,14 @@ map.on("click", (event) => {
   const message = feature ? `Comune di ${feature.properties.name}` : "Comune non disponibile";
   setStatus(message);
 
-  if (!feature || feature.properties.istat_code === municipalityFeature.properties.istat_code) {
+  if (!feature || feature.properties.administrative_unit === municipalityFeature.properties.administrative_unit) {
+    clearSelectedMunicipality();
+    map.closePopup();
+    return;
+  }
+
+  const featureKey = municipalityKey(feature);
+  if (featureKey && featureKey === selectedMunicipalityKey) {
     clearSelectedMunicipality();
     map.closePopup();
     return;
@@ -161,12 +192,16 @@ map.on("click", (event) => {
 });
 
 function findClickedMunicipality(point) {
-  if (isPointInGeometry(point, municipalityFeature.geometry)) return municipalityFeature;
+  const cadastralFeature = cadastralMunicipalityFeatures.find((candidate) =>
+    isPointInGeometry(point, candidate.geometry)
+  );
+  if (cadastralFeature) return cadastralFeature;
   return municipalityFeatures.find((candidate) => isPointInGeometry(point, candidate.geometry));
 }
 
 function showSelectedMunicipality(feature) {
   clearSelectedMunicipality();
+  selectedMunicipalityKey = municipalityKey(feature);
 
   selectedMunicipalityLayer = L.geoJSON(feature, {
     style: {
@@ -179,13 +214,49 @@ function showSelectedMunicipality(feature) {
     interactive: false,
   }).addTo(map);
 
-  if (boundaryLayer) boundaryLayer.bringToFront();
+  if (map.hasLayer(cadastralZoningLayer)) bringCadastralZoningToFront();
 }
 
 function clearSelectedMunicipality() {
-  if (!selectedMunicipalityLayer) return;
-  map.removeLayer(selectedMunicipalityLayer);
+  if (selectedMunicipalityLayer) map.removeLayer(selectedMunicipalityLayer);
   selectedMunicipalityLayer = null;
+  selectedMunicipalityKey = null;
+}
+
+function municipalityKey(feature) {
+  return feature.properties.administrative_unit || feature.properties.istat_code || feature.properties.name;
+}
+
+function stripInteriorRingsFromFeatureCollection(featureCollection) {
+  return {
+    ...featureCollection,
+    features: featureCollection.features.map((feature) => ({
+      ...feature,
+      geometry: stripInteriorRings(feature.geometry),
+    })),
+  };
+}
+
+function stripInteriorRings(geometry) {
+  if (geometry.type === "Polygon") {
+    return {
+      ...geometry,
+      coordinates: geometry.coordinates.length > 0 ? [geometry.coordinates[0]] : [],
+    };
+  }
+
+  if (geometry.type === "MultiPolygon") {
+    return {
+      ...geometry,
+      coordinates: geometry.coordinates.map((polygon) => (polygon.length > 0 ? [polygon[0]] : [])),
+    };
+  }
+
+  return geometry;
+}
+
+function bringCadastralZoningToFront() {
+  if (cadastralBoundaryLayer) cadastralBoundaryLayer.bringToFront();
 }
 
 function escapeHtml(value) {

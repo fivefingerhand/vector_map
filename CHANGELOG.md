@@ -29,3 +29,27 @@
 - Rimosso il tooltip hover sul confine di Melegnano.
 - Uniformato il click su Melegnano aggiornando il box stato e aggiunta evidenziazione blu del Comune cliccato fuori confine.
 - Scurita leggermente la maschera esterna del layer di evidenziazione Melegnano.
+
+## 2026-08-22
+
+- Aggiunti overlay WMS catastali disattivabili per strade, particelle, mappe/fogli, fabbricati e acque.
+- Mantenuti disattivati di default i nuovi overlay per preservare l'usabilita attuale della mappa.
+- Verificato il WMS MASE dei confini comunali 2020: al momento restituisce errore server, quindi non e stato esposto nella UI.
+- Aggiunto dataset locale dei fogli catastali Melegnano `F100` da 1 a 16 da WFS Agenzia Entrate.
+- Impostati i fogli catastali come confine operativo rosso, acceso di default.
+- Spenti di default il vecchio confine ISTAT e la maschera overlay.
+- Agganciata la verifica dentro/fuori Comune alla geometria composita dei fogli catastali.
+- Aggiunto layer WMS `codice_plla` per numeri particelle/fabbricati, spento di default.
+- Spostati i numeri dei fogli catastali nel layer "Numeri particelle/fabbricati".
+- Aggiunto perimetro catastale dissolto dei fogli `F100` 1-16 per maschera ed evidenziazione del territorio.
+- Aggiunto dataset dei comuni catastali nell'area di Melegnano per identificare il comune corretto al click.
+- Aggiunta disattivazione dell'evidenziazione quando si riclicca lo stesso comune selezionato.
+- Rimossi i filtri catastali `Strade catastali` e `Acque`.
+- Spostato il layer WMS dei numeri catastali sopra i vettoriali per migliorarne la visibilita.
+- Rifinito il rendering del confine catastale rimuovendo i fill trasparenti e arrotondando le giunzioni della linea.
+- Nascosti i confini interni dei fogli catastali dalla resa principale, mantenendo visibile solo il perimetro catastale esterno.
+- Rimossi gli anelli interni dal perimetro catastale usato per visualizzazione, maschera e dentro/fuori, evitando tratti di linea sovrapposti o con spessore non uniforme.
+- Rimossi i filtri `Particelle`, `Numeri particelle/fabbricati` e `Fabbricati`, insieme ai riferimenti WMS non piu necessari.
+- Spostato `Confine catastale Melegnano` negli overlay e acceso di default insieme a `Evidenzia territorio comunale`.
+- Rimosso definitivamente il layer `Confine comunale ISTAT` dalla UI e dal codice.
+- Rimossi i file `data/melegnano.geojson` e `data/melegnano.js`, non piu usati a runtime.

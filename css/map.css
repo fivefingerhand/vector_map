@@ -141,6 +141,8 @@ body {
   top: max(12px, env(safe-area-inset-top));
   right: max(12px, env(safe-area-inset-right));
   min-width: 150px;
+  max-height: calc(100% - 108px);
+  overflow: auto;
   border: 1px solid var(--panel-border);
   border-radius: 8px;
   background: var(--panel-bg);
@@ -176,6 +178,7 @@ body {
   align-items: center;
   min-height: 38px;
   padding: 0 12px 10px;
+  white-space: nowrap;
 }
 
 .leaflet-control-zoom {
