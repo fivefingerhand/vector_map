@@ -6,7 +6,7 @@
     <title>Vector Map - Melegnano</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=20260819" />
-    <link rel="stylesheet" href="css/map.css?v=20260823i" />
+    <link rel="stylesheet" href="css/map.css?v=20260823j" />
   </head>
   <body>
     <main id="app" aria-label="Mappa operativa del Comune di Melegnano">
@@ -46,6 +46,24 @@
           <path d="M5.5 15.5 3 16.75 12 21l9-4.25-2.5-1.25" />
         </svg>
         <span>Livelli</span>
+      </button>
+
+      <button
+        id="measureToolButton"
+        class="layer-toggle measure-toggle"
+        type="button"
+        aria-label="Attiva misura"
+        aria-pressed="false"
+      >
+        <svg class="measure-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M5 17.5 17.5 5" />
+          <path d="M7.5 15 9 16.5" />
+          <path d="M10.5 12 12 13.5" />
+          <path d="M13.5 9 15 10.5" />
+          <circle cx="5" cy="17.5" r="2.4" />
+          <circle cx="17.5" cy="5" r="2.4" />
+        </svg>
+        <span>Misura</span>
       </button>
 
       <section id="layerQuickPanel" class="layer-quick-panel layer-menu-panel" aria-label="Selezione rapida livelli" hidden>
@@ -110,33 +128,6 @@
               </button>
             </div>
           </section>
-
-          <section class="details-section" aria-labelledby="toolsSectionTitle">
-            <h3 id="toolsSectionTitle">Strumenti della mappa</h3>
-            <div class="detail-tile-grid">
-              <button id="measureToolButton" class="map-tile detail-tile tool-tile preview-measure" type="button" aria-pressed="false">
-                <span class="selection-mark" aria-hidden="true">&#10003;</span>
-                <span class="tile-preview" aria-hidden="true">
-                  <svg class="measure-icon" viewBox="0 0 24 24" focusable="false">
-                    <path d="M5 17.5 17.5 5" />
-                    <path d="M7.5 15 9 16.5" />
-                    <path d="M10.5 12 12 13.5" />
-                    <path d="M13.5 9 15 10.5" />
-                    <circle cx="5" cy="17.5" r="2.4" />
-                    <circle cx="17.5" cy="5" r="2.4" />
-                  </svg>
-                </span>
-                <span class="tile-name">Misura</span>
-              </button>
-            </div>
-            <div id="measurePanel" class="measure-panel" hidden>
-              <strong id="measureDistance">0 m</strong>
-              <div class="measure-actions">
-                <button id="finishMeasureButton" class="small-action-button" type="button">Fine</button>
-                <button id="clearMeasureButton" class="small-action-button" type="button">Elimina</button>
-              </div>
-            </div>
-          </section>
         </div>
       </section>
 
@@ -154,6 +145,6 @@
     <script src="data/cadastral_boundary_melegnano.js?v=20260822"></script>
     <script src="data/cadastral_municipalities_melegnano_area.js?v=20260822"></script>
     <script src="data/municipalities.js?v=20260819"></script>
-    <script src="js/map.js?v=20260823i"></script>
+    <script src="js/map.js?v=20260823j"></script>
   </body>
 </html>

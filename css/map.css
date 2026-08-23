@@ -10,7 +10,9 @@
   --shadow: 0 8px 24px rgba(11, 22, 33, 0.16);
   --bottom-controls-height: 74px;
   --control-gap: 12px;
-  --layer-panel-top: calc(max(12px, env(safe-area-inset-top)) + 68px);
+  --top-control-size: 58px;
+  --top-control-gap: 8px;
+  --layer-panel-top: calc(max(12px, env(safe-area-inset-top)) + 132px);
 }
 
 * {
@@ -168,6 +170,15 @@ body {
 
 .layer-toggle span {
   font-size: 10px;
+}
+
+.measure-toggle {
+  top: calc(max(12px, env(safe-area-inset-top)) + var(--top-control-size) + var(--top-control-gap));
+}
+
+.measure-toggle[aria-pressed="true"] {
+  background: #12312e;
+  color: #fff;
 }
 
 .layer-icon {
@@ -561,7 +572,7 @@ body {
 @media (max-width: 420px) {
   :root {
     --bottom-controls-height: 150px;
-    --layer-panel-top: calc(max(12px, env(safe-area-inset-top)) + 140px);
+    --layer-panel-top: calc(max(12px, env(safe-area-inset-top)) + 204px);
   }
 
   .toolbar {
@@ -581,6 +592,10 @@ body {
 
   .layer-toggle {
     top: calc(max(12px, env(safe-area-inset-top)) + 72px);
+  }
+
+  .measure-toggle {
+    top: calc(max(12px, env(safe-area-inset-top)) + 138px);
   }
 
   .layer-menu-panel {

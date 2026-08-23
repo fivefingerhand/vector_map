@@ -76,3 +76,4 @@
 - Rimossi i riferimenti alla base satellitare regionale e mantenuta Esri World Imagery come unica base satellitare.
 - Ripristinata `Stradale OSM` come base stradale alternativa a CARTO Voyager.
 - Abbreviate le etichette overlay del pannello dettagli in `Confine` ed `Evidenzia`, mantenendo descrizioni accessibili estese.
+- Spostato `Misura` fuori dal menu `Livelli` in un pulsante dedicato sotto `Livelli`, con stessa forma e dimensione.

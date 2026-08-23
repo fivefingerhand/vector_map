@@ -60,12 +60,10 @@ const closeLayerDetailsButton = document.getElementById("closeLayerDetailsButton
 const baseTileButtons = document.querySelectorAll("[data-base-layer]");
 const overlayTileButtons = document.querySelectorAll("[data-overlay-layer]");
 const measureToolButton = document.getElementById("measureToolButton");
-const measurePanel = document.getElementById("measurePanel");
-const measureDistance = document.getElementById("measureDistance");
 const measureHud = document.getElementById("measureHud");
 const measureHudDistance = document.getElementById("measureHudDistance");
-const finishMeasureButtons = document.querySelectorAll("#finishMeasureButton, .finish-measure-action");
-const clearMeasureButtons = document.querySelectorAll("#clearMeasureButton, .clear-measure-action");
+const finishMeasureButtons = document.querySelectorAll(".finish-measure-action");
+const clearMeasureButtons = document.querySelectorAll(".clear-measure-action");
 
 let municipalityFeature;
 let municipalityFeatures = [];
@@ -603,10 +601,8 @@ function syncLayerUi() {
 
   measureToolButton.classList.toggle("is-selected", uiState.measureActive);
   measureToolButton.setAttribute("aria-pressed", String(uiState.measureActive));
-  measurePanel.hidden = !uiState.measureActive && measurePoints.length === 0;
   measureHud.hidden = !uiState.measureActive && measurePoints.length === 0;
   const formattedDistance = formatDistance(measureTotalMeters);
-  measureDistance.textContent = formattedDistance;
   measureHudDistance.textContent = formattedDistance;
   document.body.classList.toggle("is-measuring", uiState.measureActive);
 }
