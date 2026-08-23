@@ -723,6 +723,7 @@ function addMeasurePoint(latlng) {
     now - lastMeasureClick.time < 450 &&
     lastMeasureClick.latlng.distanceTo(latlng) < 3
   ) {
+    setMeasureActive(false);
     return;
   }
   lastMeasureClick = { latlng, time: now };

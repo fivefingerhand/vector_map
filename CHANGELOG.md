@@ -77,3 +77,4 @@
 - Ripristinata `Stradale OSM` come base stradale alternativa a CARTO Voyager.
 - Abbreviate le etichette overlay del pannello dettagli in `Confine` ed `Evidenzia`, mantenendo descrizioni accessibili estese.
 - Spostato `Misura` fuori dal menu `Livelli` in un pulsante dedicato sotto `Livelli`, con stessa forma e dimensione.
+- Corretto il termine misura su doppio click ravvicinato e riservato spazio al balloon di stato mobile per evitare sovrapposizioni con `Livelli` e `Misura`.

@@ -12,6 +12,7 @@
   --control-gap: 12px;
   --top-control-size: 58px;
   --top-control-gap: 8px;
+  --top-control-reserved-width: 82px;
   --layer-panel-top: calc(max(12px, env(safe-area-inset-top)) + 132px);
 }
 
@@ -468,8 +469,8 @@ body {
 
 .measure-hud {
   left: max(12px, env(safe-area-inset-left));
-  top: calc(max(12px, env(safe-area-inset-top)) + 68px);
-  width: min(300px, calc(100% - 24px));
+  top: var(--layer-panel-top);
+  width: min(260px, calc(100% - 24px - var(--top-control-reserved-width)));
   display: grid;
   gap: 8px;
   padding: 10px;
@@ -586,7 +587,7 @@ body {
   }
 
   .status-panel {
-    right: max(12px, env(safe-area-inset-right));
+    right: calc(max(12px, env(safe-area-inset-right)) + var(--top-control-reserved-width));
     max-width: none;
   }
 
@@ -603,9 +604,9 @@ body {
   }
 
   .measure-hud {
-    top: calc(max(12px, env(safe-area-inset-top)) + 72px);
-    right: max(12px, env(safe-area-inset-right));
-    width: auto;
+    top: var(--layer-panel-top);
+    right: auto;
+    width: min(260px, calc(100% - 24px - var(--top-control-reserved-width)));
   }
 
 }
