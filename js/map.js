@@ -1,8 +1,9 @@
 const MELEGNANO_CENTER = [45.3562426686416, 9.307885207235815];
 const INITIAL_ZOOM = 14;
-const CADASTRAL_BOUNDARY_DATA_URL = "data/cadastral_boundary_melegnano.geojson";
-const CADASTRAL_MUNICIPALITIES_DATA_URL = "data/cadastral_municipalities_melegnano_area.geojson";
-const MUNICIPALITIES_DATA_URL = "data/municipalities.geojson";
+const CADASTRAL_BOUNDARY_DATA_URL = "data/cadastral_boundary_melegnano.geojson?v=20260823";
+const CADASTRAL_MUNICIPALITIES_SCRIPT_URL =
+  "data/cadastral_municipalities_melegnano_area.js?v=20260823";
+const MUNICIPALITIES_SCRIPT_URL = "data/municipalities.js?v=20260819";
 const BOUNDARY_LINE_TOLERANCE_METERS = 0.01;
 const LOCAL_CADASTRAL_NEAREST_METERS = 80;
 
@@ -82,6 +83,8 @@ let measureLine;
 let measurePoints = [];
 let measureTotalMeters = 0;
 let lastMeasureClick = null;
+let cadastralMunicipalitiesLoadPromise = null;
+let municipalitiesLoadPromise = null;
 
 const uiState = {
   quickPanelOpen: false,
@@ -104,30 +107,12 @@ init();
 
 async function init() {
   try {
-    const [
-      cadastralBoundaryGeojson,
-      cadastralMunicipalitiesGeojson,
-      municipalitiesGeojson,
-    ] =
-      await Promise.all([
-        window.MELEGNANO_CADASTRAL_BOUNDARY_GEOJSON || loadGeojson(CADASTRAL_BOUNDARY_DATA_URL),
-        window.CADASTRAL_MUNICIPALITIES_MELEGNANO_AREA_GEOJSON ||
-          loadGeojson(CADASTRAL_MUNICIPALITIES_DATA_URL),
-        window.MUNICIPALITIES_GEOJSON || loadGeojson(MUNICIPALITIES_DATA_URL),
-      ]);
+    const cadastralBoundaryGeojson =
+      window.MELEGNANO_CADASTRAL_BOUNDARY_GEOJSON || await loadGeojson(CADASTRAL_BOUNDARY_DATA_URL);
 
-    const cadastralBoundaryDisplayGeojson = stripInteriorRingsFromFeatureCollection(
-      cadastralBoundaryGeojson
-    );
-    const cadastralMunicipalitiesDisplayGeojson = stripInteriorRingsFromFeatureCollection(
-      cadastralMunicipalitiesGeojson
-    );
+    municipalityFeature = cadastralBoundaryGeojson.features[0];
 
-    municipalityFeature = cadastralBoundaryDisplayGeojson.features[0];
-    cadastralMunicipalityFeatures = cadastralMunicipalitiesDisplayGeojson.features || [];
-    municipalityFeatures = municipalitiesGeojson.features || [];
-
-    cadastralBoundaryLayer = L.geoJSON(cadastralBoundaryDisplayGeojson, {
+    cadastralBoundaryLayer = L.geoJSON(cadastralBoundaryGeojson, {
       style: {
         color: "#b91c1c",
         weight: 4,
@@ -152,6 +137,7 @@ async function init() {
 
     map.fitBounds(cadastralBoundaryLayer.getBounds(), { padding: [22, 22] });
     map.setZoom(Math.max(map.getZoom(), INITIAL_ZOOM));
+    preloadCadastralMunicipalities();
   } catch (error) {
     console.error(error);
     setStatus("Errore nel caricamento del confine comunale", true);
@@ -162,6 +148,62 @@ async function loadGeojson(url) {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`GeoJSON non caricato: ${response.status}`);
   return response.json();
+}
+
+function loadDataScript(url, globalName) {
+  if (window[globalName]) return Promise.resolve(window[globalName]);
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = url;
+    script.async = true;
+    script.onload = () => {
+      if (window[globalName]) {
+        resolve(window[globalName]);
+      } else {
+        reject(new Error(`Dataset non disponibile: ${globalName}`));
+      }
+    };
+    script.onerror = () => reject(new Error(`Script dati non caricato: ${url}`));
+    document.head.appendChild(script);
+  });
+}
+
+function preloadCadastralMunicipalities() {
+  ensureCadastralMunicipalitiesLoaded().catch((error) => {
+    console.error(error);
+  });
+}
+
+async function ensureCadastralMunicipalitiesLoaded() {
+  if (cadastralMunicipalityFeatures.length > 0) return cadastralMunicipalityFeatures;
+
+  cadastralMunicipalitiesLoadPromise ||= (async () => {
+    const geojson =
+      window.CADASTRAL_MUNICIPALITIES_MELEGNANO_AREA_GEOJSON ||
+      await loadDataScript(
+        CADASTRAL_MUNICIPALITIES_SCRIPT_URL,
+        "CADASTRAL_MUNICIPALITIES_MELEGNANO_AREA_GEOJSON"
+      );
+    cadastralMunicipalityFeatures = geojson.features || [];
+    return cadastralMunicipalityFeatures;
+  })();
+
+  return cadastralMunicipalitiesLoadPromise;
+}
+
+async function ensureMunicipalitiesLoaded() {
+  if (municipalityFeatures.length > 0) return municipalityFeatures;
+
+  municipalitiesLoadPromise ||= (async () => {
+    const geojson =
+      window.MUNICIPALITIES_GEOJSON ||
+      await loadDataScript(MUNICIPALITIES_SCRIPT_URL, "MUNICIPALITIES_GEOJSON");
+    municipalityFeatures = geojson.features || [];
+    return municipalityFeatures;
+  })();
+
+  return municipalitiesLoadPromise;
 }
 
 locateButton.addEventListener("click", () => locateOnce());
@@ -257,16 +299,23 @@ document.addEventListener("keydown", (event) => {
   if (uiState.detailsPanelOpen || uiState.quickPanelOpen) closeLayerPanels();
 });
 
-map.on("click", (event) => {
+map.on("click", async (event) => {
   if (uiState.measureActive) {
     addMeasurePoint(event.latlng);
     return;
   }
 
-  if (!municipalityFeature || municipalityFeatures.length === 0) return;
+  if (!municipalityFeature) return;
 
   const point = [event.latlng.lng, event.latlng.lat];
-  const feature = findClickedMunicipality(point);
+  let feature;
+  try {
+    feature = await findClickedMunicipality(point);
+  } catch (error) {
+    console.error(error);
+    setStatus("Dati comuni non disponibili", true);
+    return;
+  }
 
   const message = feature ? `Comune di ${feature.properties.name}` : "Comune non disponibile";
   const isOutside =
@@ -302,7 +351,7 @@ map.on("dblclick", (event) => {
   setMeasureActive(false);
 });
 
-function findClickedMunicipality(point) {
+async function findClickedMunicipality(point) {
   if (
     isPointInGeometry(point, municipalityFeature.geometry) ||
     distanceToGeometryBoundaryMeters(point, municipalityFeature.geometry) <=
@@ -311,7 +360,8 @@ function findClickedMunicipality(point) {
     return municipalityFeature;
   }
 
-  const cadastralMatches = cadastralMunicipalityFeatures.filter((candidate) =>
+  const localCadastralFeatures = await ensureCadastralMunicipalitiesLoaded();
+  const cadastralMatches = localCadastralFeatures.filter((candidate) =>
     isPointInGeometry(point, candidate.geometry)
   );
 
@@ -321,7 +371,7 @@ function findClickedMunicipality(point) {
 
   const nearestCadastralFeature = closestFeatureByBoundaryDistance(
     point,
-    cadastralMunicipalityFeatures.filter(
+    localCadastralFeatures.filter(
       (candidate) => !isMelegnanoOperationalFeature(candidate)
     )
   );
@@ -330,7 +380,8 @@ function findClickedMunicipality(point) {
     : Infinity;
   if (nearestCadastralDistance <= LOCAL_CADASTRAL_NEAREST_METERS) return nearestCadastralFeature;
 
-  const fallbackFeature = municipalityFeatures.find((candidate) =>
+  const fallbackMunicipalityFeatures = await ensureMunicipalitiesLoaded();
+  const fallbackFeature = fallbackMunicipalityFeatures.find((candidate) =>
     isPointInGeometry(point, candidate.geometry)
   );
   if (!fallbackFeature || isMelegnanoName(fallbackFeature)) return null;
@@ -389,34 +440,6 @@ function isMelegnanoOperationalFeature(feature) {
 
 function isMelegnanoName(feature) {
   return feature.properties.name?.toLowerCase() === "melegnano";
-}
-
-function stripInteriorRingsFromFeatureCollection(featureCollection) {
-  return {
-    ...featureCollection,
-    features: featureCollection.features.map((feature) => ({
-      ...feature,
-      geometry: stripInteriorRings(feature.geometry),
-    })),
-  };
-}
-
-function stripInteriorRings(geometry) {
-  if (geometry.type === "Polygon") {
-    return {
-      ...geometry,
-      coordinates: geometry.coordinates.length > 0 ? [geometry.coordinates[0]] : [],
-    };
-  }
-
-  if (geometry.type === "MultiPolygon") {
-    return {
-      ...geometry,
-      coordinates: geometry.coordinates.map((polygon) => (polygon.length > 0 ? [polygon[0]] : [])),
-    };
-  }
-
-  return geometry;
 }
 
 function bringCadastralZoningToFront() {

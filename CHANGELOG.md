@@ -78,3 +78,5 @@
 - Abbreviate le etichette overlay del pannello dettagli in `Confine` ed `Evidenzia`, mantenendo descrizioni accessibili estese.
 - Spostato `Misura` fuori dal menu `Livelli` in un pulsante dedicato sotto `Livelli`, con stessa forma e dimensione.
 - Corretto il termine misura su doppio click ravvicinato e riservato spazio al balloon di stato mobile per evitare sovrapposizioni con `Livelli` e `Misura`.
+- Ottimizzato l'avvio caricando subito solo il confine di Melegnano, con comuni catastali locali in background e dataset `municipalities` caricato solo al primo fallback necessario.
+- Pre-processati i dataset catastali rimuovendo gli anelli interni dai file dati e alleggerendo il runtime senza semplificare i confini esterni.
