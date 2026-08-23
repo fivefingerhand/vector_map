@@ -6,7 +6,7 @@
     <title>Vector Map - Melegnano</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=20260819" />
-    <link rel="stylesheet" href="css/map.css?v=20260822b" />
+    <link rel="stylesheet" href="css/map.css?v=20260823i" />
   </head>
   <body>
     <main id="app" aria-label="Mappa operativa del Comune di Melegnano">
@@ -19,6 +19,9 @@
         <button id="followButton" class="control-button" type="button" aria-pressed="false">
           Segui posizione
         </button>
+        <button id="copyCoordinateButton" class="control-button" type="button" disabled>
+          Copia punto
+        </button>
         <button id="resetButton" class="control-button icon-button" type="button" aria-label="Torna a Melegnano" title="Torna a Melegnano">
           &#8962;
         </button>
@@ -29,36 +32,121 @@
         <span id="locationStatus">Mappa pronta</span>
       </section>
 
-      <section class="layer-panel" aria-label="Layer">
-        <details>
-          <summary>Layer</summary>
-          <fieldset>
-            <legend>Base</legend>
-            <label>
-              <input name="baseLayer" type="radio" value="satellite" checked />
-              Satellite
-            </label>
-            <label>
-              <input name="baseLayer" type="radio" value="roadVoyager" />
-              Stradale Voyager
-            </label>
-            <label>
-              <input name="baseLayer" type="radio" value="roadOsm" />
-              Stradale OSM
-            </label>
-          </fieldset>
-          <fieldset>
-            <legend>Overlay</legend>
-            <label>
-              <input id="cadastralZoningLayer" type="checkbox" checked />
-              Confine catastale Melegnano
-            </label>
-            <label>
-              <input id="maskLayer" type="checkbox" checked />
-              Evidenzia territorio comunale
-            </label>
-          </fieldset>
-        </details>
+      <button
+        id="layerToggleButton"
+        class="layer-toggle"
+        type="button"
+        aria-label="Apri selezione livelli"
+        aria-expanded="false"
+        aria-controls="layerQuickPanel"
+      >
+        <svg class="layer-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 3 3 7.5 12 12l9-4.5L12 3Z" />
+          <path d="M5.5 11 3 12.25 12 17l9-4.75L18.5 11" />
+          <path d="M5.5 15.5 3 16.75 12 21l9-4.25-2.5-1.25" />
+        </svg>
+        <span>Livelli</span>
+      </button>
+
+      <section id="layerQuickPanel" class="layer-quick-panel layer-menu-panel" aria-label="Selezione rapida livelli" hidden>
+        <button class="map-tile base-tile preview-esri" type="button" data-base-layer="satellite" aria-pressed="true">
+          <span class="selection-mark" aria-hidden="true">&#10003;</span>
+          <span class="tile-preview" aria-hidden="true"></span>
+          <span class="tile-name">Satellite</span>
+        </button>
+        <button class="map-tile base-tile preview-road" type="button" data-base-layer="roadVoyager" aria-pressed="false">
+          <span class="selection-mark" aria-hidden="true">&#10003;</span>
+          <span class="tile-preview" aria-hidden="true"></span>
+          <span class="tile-name">Stradale</span>
+        </button>
+        <button class="map-tile base-tile preview-osm" type="button" data-base-layer="roadOsm" aria-pressed="false">
+          <span class="selection-mark" aria-hidden="true">&#10003;</span>
+          <span class="tile-preview" aria-hidden="true"></span>
+          <span class="tile-name">Stradale OSM</span>
+        </button>
+        <button id="openLayerDetailsButton" class="map-tile more-tile" type="button" aria-label="Apri dettagli mappa">
+          <span class="tile-preview layers-preview" aria-hidden="true">
+            <svg class="layer-icon" viewBox="0 0 24 24" focusable="false">
+              <path d="M12 3 3 7.5 12 12l9-4.5L12 3Z" />
+              <path d="M5.5 11 3 12.25 12 17l9-4.75L18.5 11" />
+              <path d="M5.5 15.5 3 16.75 12 21l9-4.25-2.5-1.25" />
+            </svg>
+          </span>
+          <span class="tile-name">Altro</span>
+        </button>
+      </section>
+
+      <section
+        id="layerDetailsPanel"
+        class="layer-details-panel layer-menu-panel"
+        aria-labelledby="layerDetailsTitle"
+        hidden
+      >
+        <header class="details-header">
+          <button id="backToBaseLayersButton" class="panel-back-button" type="button" aria-label="Torna alla selezione basi">
+            Indietro
+          </button>
+          <h2 id="layerDetailsTitle">Dettagli mappa</h2>
+          <button id="closeLayerDetailsButton" class="panel-close-button" type="button" aria-label="Chiudi dettagli mappa">
+            &times;
+          </button>
+        </header>
+
+        <div class="details-content">
+          <section class="details-section" aria-labelledby="overlaySectionTitle">
+            <h3 id="overlaySectionTitle">Livelli</h3>
+            <div class="detail-tile-grid">
+              <button class="map-tile detail-tile overlay-tile preview-boundary" type="button" data-overlay-layer="cadastralZoning" aria-pressed="true">
+                <span class="selection-mark" aria-hidden="true">&#10003;</span>
+                <span class="tile-preview" aria-hidden="true"></span>
+                <span class="tile-name">Confine</span>
+                <span class="sr-only">Confine catastale Melegnano</span>
+              </button>
+              <button class="map-tile detail-tile overlay-tile preview-mask" type="button" data-overlay-layer="mask" aria-pressed="true">
+                <span class="selection-mark" aria-hidden="true">&#10003;</span>
+                <span class="tile-preview" aria-hidden="true"></span>
+                <span class="tile-name">Evidenzia</span>
+                <span class="sr-only">Evidenzia territorio comunale</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="details-section" aria-labelledby="toolsSectionTitle">
+            <h3 id="toolsSectionTitle">Strumenti della mappa</h3>
+            <div class="detail-tile-grid">
+              <button id="measureToolButton" class="map-tile detail-tile tool-tile preview-measure" type="button" aria-pressed="false">
+                <span class="selection-mark" aria-hidden="true">&#10003;</span>
+                <span class="tile-preview" aria-hidden="true">
+                  <svg class="measure-icon" viewBox="0 0 24 24" focusable="false">
+                    <path d="M5 17.5 17.5 5" />
+                    <path d="M7.5 15 9 16.5" />
+                    <path d="M10.5 12 12 13.5" />
+                    <path d="M13.5 9 15 10.5" />
+                    <circle cx="5" cy="17.5" r="2.4" />
+                    <circle cx="17.5" cy="5" r="2.4" />
+                  </svg>
+                </span>
+                <span class="tile-name">Misura</span>
+              </button>
+            </div>
+            <div id="measurePanel" class="measure-panel" hidden>
+              <strong id="measureDistance">0 m</strong>
+              <div class="measure-actions">
+                <button id="finishMeasureButton" class="small-action-button" type="button">Fine</button>
+                <button id="clearMeasureButton" class="small-action-button" type="button">Elimina</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="measureHud" class="measure-hud" aria-live="polite" hidden>
+        <span>Misura</span>
+        <strong id="measureHudDistance">0 m</strong>
+        <div class="measure-actions">
+          <button class="small-action-button finish-measure-action" type="button">Fine</button>
+          <button class="small-action-button clear-measure-action" type="button">Elimina</button>
+        </div>
       </section>
     </main>
 
@@ -66,6 +154,6 @@
     <script src="data/cadastral_boundary_melegnano.js?v=20260822"></script>
     <script src="data/cadastral_municipalities_melegnano_area.js?v=20260822"></script>
     <script src="data/municipalities.js?v=20260819"></script>
-    <script src="js/map.js?v=20260822j"></script>
+    <script src="js/map.js?v=20260823i"></script>
   </body>
 </html>

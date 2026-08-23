@@ -13,7 +13,7 @@ const map = L.map("map", {
 }).setView(MELEGNANO_CENTER, INITIAL_ZOOM);
 
 L.control.zoom({ position: "bottomright" }).addTo(map);
-L.control.scale({ position: "bottomright", metric: true, imperial: false }).addTo(map);
+L.control.scale({ position: "bottomleft", metric: true, imperial: false }).addTo(map);
 
 const baseLayers = {
   satellite: L.tileLayer(
@@ -33,6 +33,7 @@ const baseLayers = {
 };
 
 let activeBaseLayer = baseLayers.satellite.addTo(map);
+let activeBaseLayerKey = "satellite";
 
 function createCartoLayer(style, options = {}) {
   return L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/${style}/{z}/{x}/{y}{r}.png`, {
@@ -48,12 +49,23 @@ const statusPanel = document.getElementById("statusPanel");
 const locationStatus = document.getElementById("locationStatus");
 const locateButton = document.getElementById("locateButton");
 const followButton = document.getElementById("followButton");
+const copyCoordinateButton = document.getElementById("copyCoordinateButton");
 const resetButton = document.getElementById("resetButton");
-const layerPanel = document.querySelector(".layer-panel");
-const layerPanelDetails = layerPanel.querySelector("details");
-const baseLayerInputs = document.querySelectorAll('input[name="baseLayer"]');
-const maskToggle = document.getElementById("maskLayer");
-const cadastralZoningToggle = document.getElementById("cadastralZoningLayer");
+const layerToggleButton = document.getElementById("layerToggleButton");
+const layerQuickPanel = document.getElementById("layerQuickPanel");
+const openLayerDetailsButton = document.getElementById("openLayerDetailsButton");
+const layerDetailsPanel = document.getElementById("layerDetailsPanel");
+const backToBaseLayersButton = document.getElementById("backToBaseLayersButton");
+const closeLayerDetailsButton = document.getElementById("closeLayerDetailsButton");
+const baseTileButtons = document.querySelectorAll("[data-base-layer]");
+const overlayTileButtons = document.querySelectorAll("[data-overlay-layer]");
+const measureToolButton = document.getElementById("measureToolButton");
+const measurePanel = document.getElementById("measurePanel");
+const measureDistance = document.getElementById("measureDistance");
+const measureHud = document.getElementById("measureHud");
+const measureHudDistance = document.getElementById("measureHudDistance");
+const finishMeasureButtons = document.querySelectorAll("#finishMeasureButton, .finish-measure-action");
+const clearMeasureButtons = document.querySelectorAll("#clearMeasureButton, .clear-measure-action");
 
 let municipalityFeature;
 let municipalityFeatures = [];
@@ -66,6 +78,22 @@ let selectedMunicipalityKey = null;
 let userMarker;
 let accuracyCircle;
 let watchId = null;
+let copyTarget = null;
+let measureLayer;
+let measureLine;
+let measurePoints = [];
+let measureTotalMeters = 0;
+let lastMeasureClick = null;
+
+const uiState = {
+  quickPanelOpen: false,
+  detailsPanelOpen: false,
+  overlays: {
+    cadastralZoning: true,
+    mask: true,
+  },
+  measureActive: false,
+};
 
 const userIcon = L.divIcon({
   className: "",
@@ -120,8 +148,9 @@ async function init() {
       fillOpacity: 0.32,
       interactive: false,
     });
-    if (maskToggle.checked) maskLayer.addTo(map);
+    if (uiState.overlays.mask) maskLayer.addTo(map);
     bringCadastralZoningToFront();
+    syncLayerUi();
 
     map.fitBounds(cadastralBoundaryLayer.getBounds(), { padding: [22, 22] });
     map.setZoom(Math.max(map.getZoom(), INITIAL_ZOOM));
@@ -147,6 +176,19 @@ followButton.addEventListener("click", () => {
   }
 });
 
+copyCoordinateButton.addEventListener("click", async () => {
+  if (!copyTarget) return;
+
+  const text = formatCoordinate(copyTarget.latlng);
+  try {
+    await copyText(text);
+    setStatus(`${copyTarget.label} copiate: ${text}`, copyTarget.isOutside);
+  } catch (error) {
+    console.error(error);
+    setStatus("Copia coordinate non riuscita", true);
+  }
+});
+
 resetButton.addEventListener("click", () => {
   if (cadastralBoundaryLayer) {
     map.fitBounds(cadastralBoundaryLayer.getBounds(), { padding: [22, 22] });
@@ -155,35 +197,85 @@ resetButton.addEventListener("click", () => {
   }
 });
 
-baseLayerInputs.forEach((input) => {
-  input.addEventListener("change", () => {
-    if (!input.checked) return;
-    setBaseLayer(input.value);
+layerToggleButton.addEventListener("click", () => {
+  setQuickPanelOpen(!uiState.quickPanelOpen);
+});
+
+baseTileButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setBaseLayer(button.dataset.baseLayer);
   });
 });
 
-maskToggle.addEventListener("change", () => {
-  setLayerVisibility(maskLayer, maskToggle.checked);
+openLayerDetailsButton.addEventListener("click", () => {
+  openDetailsPanel();
 });
 
-cadastralZoningToggle.addEventListener("change", () => {
-  setLayerVisibility(cadastralZoningLayer, cadastralZoningToggle.checked);
-  if (cadastralZoningToggle.checked) bringCadastralZoningToFront();
+backToBaseLayersButton.addEventListener("click", () => {
+  setQuickPanelOpen(true);
+});
+
+closeLayerDetailsButton.addEventListener("click", () => {
+  closeLayerPanels();
+});
+
+overlayTileButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    toggleOverlay(button.dataset.overlayLayer);
+  });
+});
+
+measureToolButton.addEventListener("click", () => {
+  setMeasureActive(!uiState.measureActive);
+});
+
+finishMeasureButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setMeasureActive(false);
+  });
+});
+
+clearMeasureButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    clearMeasure();
+  });
 });
 
 document.addEventListener("pointerdown", (event) => {
-  if (!layerPanelDetails.open || layerPanel.contains(event.target)) return;
-  layerPanelDetails.open = false;
+  if (
+    (!uiState.quickPanelOpen && !uiState.detailsPanelOpen) ||
+    layerQuickPanel.contains(event.target) ||
+    layerDetailsPanel.contains(event.target) ||
+    layerToggleButton.contains(event.target)
+  ) {
+    return;
+  }
+
+  closeLayerPanels();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (uiState.detailsPanelOpen || uiState.quickPanelOpen) closeLayerPanels();
 });
 
 map.on("click", (event) => {
+  if (uiState.measureActive) {
+    addMeasurePoint(event.latlng);
+    return;
+  }
+
   if (!municipalityFeature || municipalityFeatures.length === 0) return;
 
   const point = [event.latlng.lng, event.latlng.lat];
   const feature = findClickedMunicipality(point);
 
   const message = feature ? `Comune di ${feature.properties.name}` : "Comune non disponibile";
-  setStatus(message);
+  const isOutside =
+    !feature ||
+    feature.properties.administrative_unit !== municipalityFeature.properties.administrative_unit;
+  setCopyTarget(event.latlng, "punto", isOutside);
+  setStatus(message, isOutside);
 
   if (!feature || feature.properties.administrative_unit === municipalityFeature.properties.administrative_unit) {
     clearSelectedMunicipality();
@@ -204,6 +296,12 @@ map.on("click", (event) => {
     .setLatLng(event.latlng)
     .setContent(`<strong>${escapeHtml(message)}</strong>`)
     .openOn(map);
+});
+
+map.on("dblclick", (event) => {
+  if (!uiState.measureActive) return;
+  L.DomEvent.stop(event);
+  setMeasureActive(false);
 });
 
 function findClickedMunicipality(point) {
@@ -422,6 +520,8 @@ function updateUserLocation(position, centerMap) {
         BOUNDARY_LINE_TOLERANCE_METERS
     : null;
 
+  setCopyTarget(L.latLng(latlng[0], latlng[1]), "gps", inside === false);
+
   if (inside === null) {
     setStatus(`Posizione rilevata, accuratezza circa ${Math.round(accuracy)} m`);
   } else {
@@ -452,24 +552,237 @@ function setStatus(message, isOutside = false) {
   statusPanel.classList.toggle("is-outside", isOutside);
 }
 
-function setLayerVisibility(layer, visible) {
-  if (!layer) return;
-  if (visible) {
-    layer.addTo(map);
-  } else {
-    map.removeLayer(layer);
+function setQuickPanelOpen(open) {
+  uiState.quickPanelOpen = open;
+  uiState.detailsPanelOpen = false;
+  layerQuickPanel.hidden = !open;
+  layerDetailsPanel.hidden = true;
+  layerToggleButton.setAttribute("aria-expanded", String(open));
+  layerToggleButton.setAttribute(
+    "aria-label",
+    open ? "Chiudi selezione livelli" : "Apri selezione livelli"
+  );
+  if (open) syncLayerUi();
+}
+
+function openDetailsPanel() {
+  uiState.quickPanelOpen = false;
+  uiState.detailsPanelOpen = true;
+  layerQuickPanel.hidden = true;
+  layerDetailsPanel.hidden = false;
+  layerToggleButton.setAttribute("aria-expanded", "true");
+  layerToggleButton.setAttribute("aria-label", "Chiudi selezione livelli");
+  syncLayerUi();
+}
+
+function closeLayerPanels() {
+  uiState.quickPanelOpen = false;
+  uiState.detailsPanelOpen = false;
+  layerQuickPanel.hidden = true;
+  layerDetailsPanel.hidden = true;
+  layerToggleButton.setAttribute("aria-expanded", "false");
+  layerToggleButton.setAttribute("aria-label", "Apri selezione livelli");
+}
+
+function syncLayerUi() {
+  baseTileButtons.forEach((button) => {
+    const selected = button.dataset.baseLayer === activeBaseLayerKey;
+    button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+    button.setAttribute(
+      "aria-label",
+      `${button.querySelector(".tile-name").textContent}${selected ? ", base attiva" : ""}`
+    );
+  });
+
+  overlayTileButtons.forEach((button) => {
+    const active = Boolean(uiState.overlays[button.dataset.overlayLayer]);
+    button.classList.toggle("is-selected", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+
+  measureToolButton.classList.toggle("is-selected", uiState.measureActive);
+  measureToolButton.setAttribute("aria-pressed", String(uiState.measureActive));
+  measurePanel.hidden = !uiState.measureActive && measurePoints.length === 0;
+  measureHud.hidden = !uiState.measureActive && measurePoints.length === 0;
+  const formattedDistance = formatDistance(measureTotalMeters);
+  measureDistance.textContent = formattedDistance;
+  measureHudDistance.textContent = formattedDistance;
+  document.body.classList.toggle("is-measuring", uiState.measureActive);
+}
+
+function setCopyTarget(latlng, source, isOutside = false) {
+  copyTarget = {
+    latlng,
+    label: source === "gps" ? "Coordinate GPS" : "Coordinate punto",
+    isOutside,
+  };
+
+  copyCoordinateButton.disabled = false;
+  copyCoordinateButton.classList.add("copy-ready");
+  copyCoordinateButton.textContent = source === "gps" ? "Copia GPS" : "Copia punto";
+}
+
+function formatCoordinate(latlng) {
+  return `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
+}
+
+async function copyText(text) {
+  if (navigator.clipboard?.writeText && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.top = "-1000px";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+
+  try {
+    const copied = document.execCommand("copy");
+    if (!copied) throw new Error("document.execCommand copy failed");
+  } finally {
+    document.body.removeChild(textarea);
   }
 }
 
-function setBaseLayer(layerName) {
+function setLayerVisibility(layer, visible) {
+  if (!layer) return;
+  if (visible) {
+    if (!map.hasLayer(layer)) layer.addTo(map);
+  } else {
+    if (map.hasLayer(layer)) map.removeLayer(layer);
+  }
+}
+
+function toggleOverlay(layerName) {
+  if (!(layerName in uiState.overlays)) return;
+
+  uiState.overlays[layerName] = !uiState.overlays[layerName];
+  const layer = layerName === "cadastralZoning" ? cadastralZoningLayer : maskLayer;
+  setLayerVisibility(layer, uiState.overlays[layerName]);
+  if (uiState.overlays.cadastralZoning) bringCadastralZoningToFront();
+  if (selectedMunicipalityLayer) selectedMunicipalityLayer.bringToFront();
+  syncLayerUi();
+}
+
+function setBaseLayer(layerName, options = {}) {
   const nextLayer = baseLayers[layerName];
-  if (!nextLayer || nextLayer === activeBaseLayer) return;
+  if (!nextLayer) return;
+
+  if (nextLayer === activeBaseLayer) {
+    if (!options.keepQuickPanelOpen) closeLayerPanels();
+    syncLayerUi();
+    return;
+  }
 
   activeBaseLayer.setOpacity(1);
   map.removeLayer(activeBaseLayer);
   activeBaseLayer = nextLayer.addTo(map);
+  activeBaseLayerKey = layerName;
 
   bringCadastralZoningToFront();
+  if (selectedMunicipalityLayer) selectedMunicipalityLayer.bringToFront();
+  if (measureLayer) measureLayer.bringToFront();
+  if (!options.keepQuickPanelOpen) closeLayerPanels();
+  if (options.statusMessage) setStatus(options.statusMessage, false);
+  syncLayerUi();
+}
+
+function setMeasureActive(active) {
+  if (uiState.measureActive === active) {
+    syncLayerUi();
+    return;
+  }
+
+  uiState.measureActive = active;
+  if (active) {
+    closeLayerPanels();
+    ensureMeasureLayer();
+    lastMeasureClick = null;
+    map.doubleClickZoom.disable();
+    setStatus("Misura attiva: tocca i punti sulla mappa, doppio click per terminare");
+  } else if (measurePoints.length > 0) {
+    map.doubleClickZoom.enable();
+    setStatus(`Misura terminata: ${formatDistance(measureTotalMeters)}`);
+  } else {
+    map.doubleClickZoom.enable();
+  }
+  syncLayerUi();
+}
+
+function ensureMeasureLayer() {
+  if (!measureLayer) measureLayer = L.layerGroup().addTo(map);
+  if (!map.hasLayer(measureLayer)) measureLayer.addTo(map);
+}
+
+function addMeasurePoint(latlng) {
+  const now = Date.now();
+  if (
+    lastMeasureClick &&
+    now - lastMeasureClick.time < 450 &&
+    lastMeasureClick.latlng.distanceTo(latlng) < 3
+  ) {
+    return;
+  }
+  lastMeasureClick = { latlng, time: now };
+
+  ensureMeasureLayer();
+
+  measurePoints.push(latlng);
+  L.circleMarker(latlng, {
+    radius: 5,
+    color: "#fff",
+    weight: 2,
+    fillColor: "#2563eb",
+    fillOpacity: 1,
+    interactive: false,
+  }).addTo(measureLayer);
+
+  if (measurePoints.length > 1) {
+    measureTotalMeters += measurePoints[measurePoints.length - 2].distanceTo(latlng);
+  }
+
+  if (!measureLine) {
+    measureLine = L.polyline(measurePoints, {
+      color: "#2563eb",
+      weight: 4,
+      opacity: 0.95,
+      interactive: false,
+    }).addTo(measureLayer);
+  } else {
+    measureLine.setLatLngs(measurePoints);
+  }
+
+  setStatus(
+    measurePoints.length < 2
+      ? "Primo punto misura inserito"
+      : `Distanza misurata: ${formatDistance(measureTotalMeters)}`
+  );
+  syncLayerUi();
+}
+
+function clearMeasure() {
+  measurePoints = [];
+  measureTotalMeters = 0;
+  measureLine = null;
+  lastMeasureClick = null;
+  if (measureLayer) measureLayer.clearLayers();
+  if (uiState.measureActive) {
+    setStatus("Misura cancellata: tocca un punto sulla mappa");
+  } else {
+    setStatus("Misura cancellata");
+  }
+  syncLayerUi();
+}
+
+function formatDistance(meters) {
+  if (meters < 1000) return `${Math.round(meters)} m`;
+  return `${(meters / 1000).toFixed(meters < 10000 ? 2 : 1)} km`;
 }
 
 function buildOutsideMask(geometry) {

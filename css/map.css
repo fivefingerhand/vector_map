@@ -8,6 +8,9 @@
   --accent-dark: #0b5f58;
   --warning: #9a3412;
   --shadow: 0 8px 24px rgba(11, 22, 33, 0.16);
+  --bottom-controls-height: 74px;
+  --control-gap: 12px;
+  --layer-panel-top: calc(max(12px, env(safe-area-inset-top)) + 68px);
 }
 
 * {
@@ -65,7 +68,10 @@ body {
 
 .toolbar,
 .status-panel,
-.layer-panel {
+.layer-toggle,
+.layer-quick-panel,
+.layer-details-panel,
+.measure-hud {
   position: absolute;
   z-index: 500;
 }
@@ -75,7 +81,7 @@ body {
   right: max(12px, env(safe-area-inset-right));
   bottom: max(14px, env(safe-area-inset-bottom));
   display: grid;
-  grid-template-columns: 1fr 1fr 48px;
+  grid-template-columns: 1fr 1fr 1fr 48px;
   gap: 8px;
   pointer-events: none;
 }
@@ -99,14 +105,20 @@ body {
   color: #fff;
 }
 
+.control-button.copy-ready {
+  background: #f59e0b;
+  border-color: #d97706;
+  color: #111827;
+}
+
 .control-button[aria-pressed="true"] {
   background: #12312e;
   color: #fff;
 }
 
 .control-button:disabled {
-  cursor: progress;
-  opacity: 0.7;
+  cursor: not-allowed;
+  opacity: 0.58;
 }
 
 .icon-button {
@@ -137,58 +149,356 @@ body {
   font-weight: 700;
 }
 
-.layer-panel {
+.layer-toggle {
   top: max(12px, env(safe-area-inset-top));
   right: max(12px, env(safe-area-inset-right));
-  min-width: 150px;
-  max-height: calc(100% - 108px);
-  overflow: auto;
+  width: 58px;
+  min-height: 58px;
+  display: grid;
+  place-items: center;
+  gap: 2px;
   border: 1px solid var(--panel-border);
   border-radius: 8px;
   background: var(--panel-bg);
   box-shadow: var(--shadow);
-  font-size: 14px;
-}
-
-.layer-panel summary {
-  min-height: 42px;
-  padding: 11px 12px;
+  color: var(--text);
+  font: 800 12px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   cursor: pointer;
-  font-weight: 700;
 }
 
-.layer-panel fieldset {
+.layer-toggle span {
+  font-size: 10px;
+}
+
+.layer-icon {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.layer-menu-panel {
+  top: var(--layer-panel-top);
+  right: max(12px, env(safe-area-inset-right));
+  width: min(220px, calc(100% - 24px));
+  max-height: calc(100dvh - var(--layer-panel-top) - var(--bottom-controls-height) - max(12px, env(safe-area-inset-bottom)));
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: var(--shadow);
+  overscroll-behavior: contain;
+}
+
+.layer-details-panel {
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.layer-quick-panel[hidden],
+.layer-details-panel[hidden],
+.measure-panel[hidden],
+.measure-hud[hidden] {
+  display: none;
+}
+
+.map-tile {
+  position: relative;
+  width: 100%;
   min-width: 0;
-  margin: 0;
-  padding: 0 0 4px;
-  border: 0;
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 6px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+  font: 800 13px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-align: left;
+  cursor: pointer;
 }
 
-.layer-panel legend {
-  padding: 2px 12px 4px;
+.map-tile:hover,
+.map-tile:focus-visible {
+  border-color: rgba(37, 99, 235, 0.55);
+  outline: 0;
+}
+
+.map-tile.is-selected,
+.map-tile[aria-pressed="true"] {
+  border-color: #2563eb;
+  background: #fff;
+}
+
+.selection-mark {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+  width: 20px;
+  height: 20px;
+  display: none;
+  place-items: center;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.map-tile.is-selected .selection-mark,
+.map-tile[aria-pressed="true"] .selection-mark {
+  display: grid;
+}
+
+.tile-preview {
+  grid-column: 1;
+  grid-row: 1;
+  width: 42px;
+  height: 42px;
+  justify-self: start;
+  border-radius: 10px;
+  border: 1px solid rgba(22, 33, 44, 0.14);
+  overflow: hidden;
+}
+
+.tile-name {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: normal;
+  word-break: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.preview-esri .tile-preview {
+  background:
+    linear-gradient(135deg, rgba(21, 83, 45, 0.78), rgba(84, 126, 70, 0.72) 40%, rgba(178, 160, 116, 0.82) 41% 62%, rgba(38, 94, 55, 0.78) 63%),
+    linear-gradient(35deg, transparent 0 42%, rgba(245, 245, 245, 0.45) 43% 47%, transparent 48%),
+    #466b4c;
+}
+
+.preview-esri .tile-preview {
+  filter: saturate(0.86) contrast(1.05);
+}
+
+.preview-road .tile-preview {
+  background:
+    linear-gradient(90deg, transparent 0 43%, #f8fafc 44% 56%, transparent 57%),
+    linear-gradient(28deg, transparent 0 44%, #ffffff 45% 55%, transparent 56%),
+    linear-gradient(150deg, transparent 0 46%, #d1d5db 47% 53%, transparent 54%),
+    #d8ede5;
+}
+
+.preview-osm .tile-preview {
+  background:
+    linear-gradient(90deg, transparent 0 37%, #fff7ed 38% 50%, transparent 51%),
+    linear-gradient(24deg, transparent 0 42%, #ffffff 43% 57%, transparent 58%),
+    linear-gradient(152deg, transparent 0 46%, #a7f3d0 47% 56%, transparent 57%),
+    #e7f5dd;
+}
+
+.layers-preview {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #f8fafc, #e2e8f0);
+  color: var(--accent-dark);
+}
+
+.layers-preview .layer-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.details-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  margin: -8px -8px 8px;
+  padding: 8px 8px 7px;
+  border-bottom: 1px solid rgba(25, 35, 45, 0.12);
+}
+
+.details-header h2,
+.details-section h3 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.details-header h2 {
+  font-size: 14px;
+  text-align: center;
+}
+
+.panel-back-button,
+.panel-close-button {
+  min-width: 34px;
+  height: 34px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  font: 800 24px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+
+.panel-back-button {
+  padding: 0 9px;
+  font: 800 12px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.panel-close-button {
+  width: 34px;
+  padding: 0;
+  font-size: 22px;
+}
+
+.details-section + .details-section {
+  margin-top: 14px;
+}
+
+.details-content {
+  overflow-y: auto;
+}
+
+.details-section h3 {
+  margin-bottom: 10px;
   color: var(--muted);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
 }
 
-.layer-panel label {
-  display: flex;
+.detail-tile-grid {
+  display: grid;
   gap: 8px;
-  align-items: center;
-  min-height: 38px;
-  padding: 0 12px 10px;
+}
+
+.detail-tile {
+  width: 100%;
+  min-width: 0;
+  min-height: 56px;
+}
+
+.preview-boundary .tile-preview {
+  background:
+    linear-gradient(36deg, transparent 0 42%, #b91c1c 43% 48%, transparent 49%),
+    linear-gradient(130deg, transparent 0 50%, #b91c1c 51% 57%, transparent 58%),
+    #f8fafc;
+}
+
+.preview-mask .tile-preview {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.82) 0 34%, transparent 35%),
+    rgba(31, 41, 51, 0.56);
+}
+
+.preview-measure .tile-preview {
+  display: grid;
+  place-items: center;
+  background: #f8fafc;
+  color: #2563eb;
+}
+
+.measure-icon {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.2;
+}
+
+.measure-panel {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(25, 35, 45, 0.14);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.measure-panel strong {
+  font-size: 18px;
+}
+
+.measure-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.small-action-button {
+  min-height: 42px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: var(--panel-bg);
+  color: var(--text);
+  font: 800 13px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+
+.measure-hud {
+  left: max(12px, env(safe-area-inset-left));
+  top: calc(max(12px, env(safe-area-inset-top)) + 68px);
+  width: min(300px, calc(100% - 24px));
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: var(--panel-bg);
+  box-shadow: var(--shadow);
+}
+
+.measure-hud span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.measure-hud strong {
+  font-size: 20px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
   white-space: nowrap;
+  border: 0;
 }
 
 .leaflet-control-zoom {
   border: 0 !important;
+  margin-bottom: calc(var(--bottom-controls-height) + var(--control-gap)) !important;
   box-shadow: var(--shadow);
 }
 
 .leaflet-control-scale {
-  margin-right: 10px !important;
-  margin-bottom: 10px !important;
+  margin-left: var(--control-gap) !important;
+  margin-bottom: calc(var(--bottom-controls-height) + var(--control-gap)) !important;
 }
 
 .leaflet-control-scale-line {
@@ -205,6 +515,28 @@ body {
   line-height: 42px !important;
 }
 
+.leaflet-popup-content-wrapper {
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: var(--panel-bg);
+  box-shadow: var(--shadow);
+  color: var(--text);
+}
+
+.leaflet-popup-content {
+  margin: 10px 12px;
+  font: 700 14px/1.25 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.leaflet-popup-tip {
+  background: var(--panel-bg);
+  box-shadow: var(--shadow);
+}
+
+.is-measuring #map {
+  cursor: crosshair;
+}
+
 .user-location-marker {
   width: 18px;
   height: 18px;
@@ -217,19 +549,28 @@ body {
 @media (min-width: 760px) {
   .toolbar {
     right: auto;
-    width: 430px;
-    grid-template-columns: 1fr 1fr 48px;
+    width: 560px;
+    grid-template-columns: 1fr 1fr 1fr 48px;
+  }
+
+  .layer-menu-panel {
+    width: min(280px, calc(100% - 24px));
   }
 }
 
 @media (max-width: 420px) {
+  :root {
+    --bottom-controls-height: 150px;
+    --layer-panel-top: calc(max(12px, env(safe-area-inset-top)) + 140px);
+  }
+
   .toolbar {
     bottom: calc(max(12px, env(safe-area-inset-bottom)) + 24px);
-    grid-template-columns: 1fr 48px;
+    grid-template-columns: 1fr 1fr 48px;
   }
 
   #followButton {
-    grid-column: 1 / -1;
+    grid-column: 1 / 3;
     grid-row: 2;
   }
 
@@ -238,12 +579,18 @@ body {
     max-width: none;
   }
 
-  .layer-panel {
+  .layer-toggle {
     top: calc(max(12px, env(safe-area-inset-top)) + 72px);
   }
 
-  .leaflet-control-zoom,
-  .leaflet-control-scale {
-    margin-bottom: 140px !important;
+  .layer-menu-panel {
+    width: min(220px, calc(100% - 24px));
   }
+
+  .measure-hud {
+    top: calc(max(12px, env(safe-area-inset-top)) + 72px);
+    right: max(12px, env(safe-area-inset-right));
+    width: auto;
+  }
+
 }

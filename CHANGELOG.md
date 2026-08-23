@@ -55,13 +55,24 @@
 - Rimossi i file `data/melegnano.geojson` e `data/melegnano.js`, non piu usati a runtime.
 - Data priorita al perimetro catastale di Melegnano nel riconoscimento al click, prima degli altri comuni catastali e del fallback ISTAT.
 - Disattivato il fallback ISTAT dentro la copertura catastale locale per evitare identificazioni incoerenti vicino ai confini.
-- Integrata l'Ortofoto Lombardia 2024 ufficiale come base WMS predefinita.
 - Mantenuti CARTO Voyager come base stradale ed Esri World Imagery come base satellitare alternativa.
-- Aggiunto fallback automatico una sola volta da Ortofoto Lombardia 2024 a Esri World Imagery dopo errori ripetuti di tile.
-- Rimossa l'Ortofoto Lombardia 2024 dalla UI per tempi di caricamento iniziale non adeguati.
 - Ripristinata Esri World Imagery come base satellitare predefinita.
 - Ridotto il selettore basi a due radio mutuamente esclusivi: `Satellite` Esri e `Stradale` CARTO Voyager.
-- Aggiunta `Stradale OSM` come alternativa a `Stradale Voyager`.
 - Aggiunta chiusura automatica del pannello `Layer` quando si clicca fuori dal pannello.
 - Separata la documentazione operativa locale dai file pubblicabili: `STATUS.md`, `AGENTS.md`, `PROJECT.md`, `ROADMAP.md` e `README_INTERNAL.md` restano fuori da Git; `CHANGELOG.md` rimane pubblico.
 - Spostate le esclusioni dei documenti operativi locali da `.gitignore` a `.git/info/exclude`, mantenendo pubblico solo un `.gitignore` minimale per file generici.
+
+## 2026-08-23
+
+- Aggiunto comando rapido `Copia punto` nella toolbar della mappa.
+- Il comando diventa `Copia GPS` dopo una posizione rilevata e copia le coordinate in formato `lat, lon`.
+- Aggiornata la toolbar mobile e desktop per mantenere leggibili posizione, follow, copia coordinate e reset vista.
+- Sostituito il pannello testuale `Layer` con un selettore compatto a tessere, mantenendo `Satellite` Esri come base predefinita e `Stradale` CARTO Voyager.
+- Aggiornata la tessera `Misura` con icona SVG locale e chiusura della modalita tramite doppio click sulla mappa, mantenendo visibile la misura fino al comando `Elimina`.
+- Ridotte le tessere del menu livelli e vincolate le anteprime a icone quadrate compatte, evitando overflow su viewport mobile stretti.
+- Riallineato il pannello `Dettagli mappa` come sottomenu ancorato al menu `Livelli`, con tiles compatte coerenti e popup mappa stilati come gli altri pannelli.
+- Convertito il selettore `Livelli` in menu verticale compatto ancorato al pulsante, con `Dettagli mappa` come vista alternativa con `Indietro`, scala metrica a sinistra e basi riallineate a `Satellite` e `Stradale`.
+- Rimosso il riferimento mancante a `leaflet.js.map` dal bundle Leaflet locale per evitare warning `source map failed to load` in console.
+- Rimossi i riferimenti alla base satellitare regionale e mantenuta Esri World Imagery come unica base satellitare.
+- Ripristinata `Stradale OSM` come base stradale alternativa a CARTO Voyager.
+- Abbreviate le etichette overlay del pannello dettagli in `Confine` ed `Evidenzia`, mantenendo descrizioni accessibili estese.
