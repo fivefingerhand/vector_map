@@ -206,7 +206,14 @@ async function ensureMunicipalitiesLoaded() {
   return municipalitiesLoadPromise;
 }
 
-locateButton.addEventListener("click", () => locateOnce());
+locateButton.addEventListener("click", () => {
+  if (watchId !== null) {
+    stopFollowing("Aggiornamento posizione disattivato");
+    return;
+  }
+
+  locateOnce();
+});
 
 followButton.addEventListener("click", () => {
   if (watchId === null) {
@@ -487,7 +494,7 @@ function startFollowing() {
   setStatus("Aggiornamento posizione attivo");
 
   watchId = navigator.geolocation.watchPosition(
-    (position) => updateUserLocation(position, true),
+    (position) => updateUserLocation(position, false),
     (error) => {
       stopFollowing(geolocationErrorMessage(error), true);
     },

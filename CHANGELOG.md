@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-25
+
+- Corretto il follow GPS: durante l'aggiornamento continuo la posizione aggiorna marker, accuratezza e stato senza ricentrare automaticamente la mappa.
+- Aggiunta disattivazione del follow GPS cliccando di nuovo `Segui posizione` oppure `La mia posizione`.
+
 ## 2026-08-19
 
 - Creata prima versione statica della web map `vector_map`.
