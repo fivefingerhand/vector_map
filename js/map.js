@@ -72,6 +72,7 @@ let cadastralMunicipalityFeatures = [];
 let maskLayer;
 let cadastralZoningLayer;
 let cadastralBoundaryLayer;
+let regionalBoundaryLayer;
 let selectedMunicipalityLayer;
 let selectedMunicipalityKey = null;
 let userMarker;
@@ -91,6 +92,7 @@ const uiState = {
   detailsPanelOpen: false,
   overlays: {
     cadastralZoning: true,
+    regionalBoundary: false,
     mask: true,
   },
   measureActive: false,
@@ -125,6 +127,22 @@ async function init() {
 
     cadastralZoningLayer = L.layerGroup([cadastralBoundaryLayer]).addTo(map);
 
+    if (window.MELEGNANO_REGIONAL_BOUNDARY_GEOJSON) {
+      regionalBoundaryLayer = L.geoJSON(window.MELEGNANO_REGIONAL_BOUNDARY_GEOJSON, {
+        attribution: 'Confine &copy; Regione Lombardia, CC BY 4.0',
+        style: {
+          color: "#f59e0b",
+          weight: 3,
+          opacity: 1,
+          fill: false,
+          dashArray: "8 6",
+          lineCap: "round",
+          lineJoin: "round",
+        },
+        interactive: false,
+      });
+    }
+
     maskLayer = L.polygon(buildOutsideMask(municipalityFeature.geometry), {
       stroke: false,
       fillColor: "#1f2933",
@@ -132,7 +150,7 @@ async function init() {
       interactive: false,
     });
     if (uiState.overlays.mask) maskLayer.addTo(map);
-    bringCadastralZoningToFront();
+    bringBoundaryLayersToFront();
     syncLayerUi();
 
     map.fitBounds(cadastralBoundaryLayer.getBounds(), { padding: [22, 22] });
@@ -425,7 +443,7 @@ function showSelectedMunicipality(feature) {
     interactive: false,
   }).addTo(map);
 
-  if (map.hasLayer(cadastralZoningLayer)) bringCadastralZoningToFront();
+  bringBoundaryLayersToFront();
 }
 
 function clearSelectedMunicipality() {
@@ -451,6 +469,13 @@ function isMelegnanoName(feature) {
 
 function bringCadastralZoningToFront() {
   if (cadastralBoundaryLayer) cadastralBoundaryLayer.bringToFront();
+}
+
+function bringBoundaryLayersToFront() {
+  if (map.hasLayer(cadastralZoningLayer)) bringCadastralZoningToFront();
+  if (regionalBoundaryLayer && map.hasLayer(regionalBoundaryLayer)) {
+    regionalBoundaryLayer.bringToFront();
+  }
 }
 
 function escapeHtml(value) {
@@ -689,9 +714,14 @@ function toggleOverlay(layerName) {
   if (!(layerName in uiState.overlays)) return;
 
   uiState.overlays[layerName] = !uiState.overlays[layerName];
-  const layer = layerName === "cadastralZoning" ? cadastralZoningLayer : maskLayer;
+  const layers = {
+    cadastralZoning: cadastralZoningLayer,
+    regionalBoundary: regionalBoundaryLayer,
+    mask: maskLayer,
+  };
+  const layer = layers[layerName];
   setLayerVisibility(layer, uiState.overlays[layerName]);
-  if (uiState.overlays.cadastralZoning) bringCadastralZoningToFront();
+  bringBoundaryLayersToFront();
   if (selectedMunicipalityLayer) selectedMunicipalityLayer.bringToFront();
   syncLayerUi();
 }
@@ -711,7 +741,7 @@ function setBaseLayer(layerName, options = {}) {
   activeBaseLayer = nextLayer.addTo(map);
   activeBaseLayerKey = layerName;
 
-  bringCadastralZoningToFront();
+  bringBoundaryLayersToFront();
   if (selectedMunicipalityLayer) selectedMunicipalityLayer.bringToFront();
   if (measureLayer) measureLayer.bringToFront();
   if (!options.keepQuickPanelOpen) closeLayerPanels();

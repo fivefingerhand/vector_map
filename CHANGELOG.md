@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-05
+
+- Aggiunto il layer facoltativo `Confine RL` per confrontare il confine catastale operativo con il confine amministrativo pubblicato dal servizio ArcGIS REST di Regione Lombardia.
+- Il nuovo layer e incluso localmente, resta disattivato di default e non modifica classificazione GPS, click, maschera o confine operativo.
+- Documentata nel dataset la fonte `Ambiti Amministrativi Lombardia`, con anno dichiarato dal servizio (`2011`) e attribuzione Regione Lombardia.
+
 ## 2026-08-25
 
 - Corretto il follow GPS: durante l'aggiornamento continuo la posizione aggiorna marker, accuratezza e stato senza ricentrare automaticamente la mappa.

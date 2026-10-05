@@ -6,7 +6,7 @@
     <title>Vector Map - Melegnano</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=20260819" />
-    <link rel="stylesheet" href="css/map.css?v=20260823k" />
+    <link rel="stylesheet" href="css/map.css?v=20261005a" />
   </head>
   <body>
     <main id="app" aria-label="Mappa operativa del Comune di Melegnano">
@@ -120,6 +120,12 @@
                 <span class="tile-name">Confine</span>
                 <span class="sr-only">Confine catastale Melegnano</span>
               </button>
+              <button class="map-tile detail-tile overlay-tile preview-regional-boundary" type="button" data-overlay-layer="regionalBoundary" aria-pressed="false">
+                <span class="selection-mark" aria-hidden="true">&#10003;</span>
+                <span class="tile-preview" aria-hidden="true"></span>
+                <span class="tile-name">Confine RL</span>
+                <span class="sr-only">Confine amministrativo Regione Lombardia, confronto</span>
+              </button>
               <button class="map-tile detail-tile overlay-tile preview-mask" type="button" data-overlay-layer="mask" aria-pressed="true">
                 <span class="selection-mark" aria-hidden="true">&#10003;</span>
                 <span class="tile-preview" aria-hidden="true"></span>
@@ -143,6 +149,7 @@
 
     <script src="vendor/leaflet/leaflet.js?v=20260819"></script>
     <script src="data/cadastral_boundary_melegnano.js?v=20260823"></script>
-    <script src="js/map.js?v=20260825a"></script>
+    <script src="data/regional_boundary_melegnano.js?v=20261005"></script>
+    <script src="js/map.js?v=20261005a"></script>
   </body>
 </html>
