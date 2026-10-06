@@ -114,17 +114,17 @@
           <section class="details-section" aria-labelledby="overlaySectionTitle">
             <h3 id="overlaySectionTitle">Livelli</h3>
             <div class="detail-tile-grid">
-              <button class="map-tile detail-tile overlay-tile preview-boundary" type="button" data-overlay-layer="cadastralZoning" aria-pressed="true">
+              <button class="map-tile detail-tile overlay-tile preview-boundary" type="button" data-overlay-layer="operationalBoundary" aria-pressed="true">
                 <span class="selection-mark" aria-hidden="true">&#10003;</span>
                 <span class="tile-preview" aria-hidden="true"></span>
                 <span class="tile-name">Confine</span>
-                <span class="sr-only">Confine catastale Melegnano</span>
+                <span class="sr-only">Confine amministrativo DBT Regione Lombardia 2022</span>
               </button>
               <button class="map-tile detail-tile overlay-tile preview-regional-boundary" type="button" data-overlay-layer="regionalBoundary" aria-pressed="false">
                 <span class="selection-mark" aria-hidden="true">&#10003;</span>
                 <span class="tile-preview" aria-hidden="true"></span>
-                <span class="tile-name">Confine RL</span>
-                <span class="sr-only">Confine amministrativo Regione Lombardia, confronto</span>
+                <span class="tile-name">Confine RL 2011</span>
+                <span class="sr-only">Confine amministrativo Regione Lombardia 2011, confronto</span>
               </button>
               <button class="map-tile detail-tile overlay-tile preview-mask" type="button" data-overlay-layer="mask" aria-pressed="true">
                 <span class="selection-mark" aria-hidden="true">&#10003;</span>
@@ -148,8 +148,8 @@
     </main>
 
     <script src="vendor/leaflet/leaflet.js?v=20260819"></script>
-    <script src="data/cadastral_boundary_melegnano.js?v=20260823"></script>
+    <script src="data/melegnano-boundary.js?v=20261006"></script>
     <script src="data/regional_boundary_melegnano.js?v=20261005"></script>
-    <script src="js/map.js?v=20261005a"></script>
+    <script src="js/map.js?v=20261006"></script>
   </body>
 </html>

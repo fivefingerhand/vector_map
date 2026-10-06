@@ -1,6 +1,6 @@
 const MELEGNANO_CENTER = [45.3562426686416, 9.307885207235815];
 const INITIAL_ZOOM = 14;
-const CADASTRAL_BOUNDARY_DATA_URL = "data/cadastral_boundary_melegnano.geojson?v=20260823";
+const OPERATIONAL_BOUNDARY_DATA_URL = "data/melegnano-boundary.geojson?v=20261006";
 const CADASTRAL_MUNICIPALITIES_SCRIPT_URL =
   "data/cadastral_municipalities_melegnano_area.js?v=20260823";
 const MUNICIPALITIES_SCRIPT_URL = "data/municipalities.js?v=20260819";
@@ -70,8 +70,8 @@ let municipalityFeature;
 let municipalityFeatures = [];
 let cadastralMunicipalityFeatures = [];
 let maskLayer;
-let cadastralZoningLayer;
-let cadastralBoundaryLayer;
+let operationalBoundaryOverlay;
+let operationalBoundaryLayer;
 let regionalBoundaryLayer;
 let selectedMunicipalityLayer;
 let selectedMunicipalityKey = null;
@@ -91,7 +91,7 @@ const uiState = {
   quickPanelOpen: false,
   detailsPanelOpen: false,
   overlays: {
-    cadastralZoning: true,
+    operationalBoundary: true,
     regionalBoundary: false,
     mask: true,
   },
@@ -109,12 +109,15 @@ init();
 
 async function init() {
   try {
-    const cadastralBoundaryGeojson =
-      window.MELEGNANO_CADASTRAL_BOUNDARY_GEOJSON || await loadGeojson(CADASTRAL_BOUNDARY_DATA_URL);
+    const operationalBoundaryGeojson =
+      window.MELEGNANO_BOUNDARY_GEOJSON || await loadGeojson(OPERATIONAL_BOUNDARY_DATA_URL);
 
-    municipalityFeature = cadastralBoundaryGeojson.features[0];
+    municipalityFeature = normalizeOperationalBoundaryFeature(
+      operationalBoundaryGeojson.features[0]
+    );
 
-    cadastralBoundaryLayer = L.geoJSON(cadastralBoundaryGeojson, {
+    operationalBoundaryLayer = L.geoJSON(municipalityFeature, {
+      attribution: 'Confine &copy; Regione Lombardia',
       style: {
         color: "#b91c1c",
         weight: 4,
@@ -125,7 +128,7 @@ async function init() {
       },
     });
 
-    cadastralZoningLayer = L.layerGroup([cadastralBoundaryLayer]).addTo(map);
+    operationalBoundaryOverlay = L.layerGroup([operationalBoundaryLayer]).addTo(map);
 
     if (window.MELEGNANO_REGIONAL_BOUNDARY_GEOJSON) {
       regionalBoundaryLayer = L.geoJSON(window.MELEGNANO_REGIONAL_BOUNDARY_GEOJSON, {
@@ -153,13 +156,32 @@ async function init() {
     bringBoundaryLayersToFront();
     syncLayerUi();
 
-    map.fitBounds(cadastralBoundaryLayer.getBounds(), { padding: [22, 22] });
+    map.fitBounds(operationalBoundaryLayer.getBounds(), { padding: [22, 22] });
     map.setZoom(Math.max(map.getZoom(), INITIAL_ZOOM));
     preloadCadastralMunicipalities();
   } catch (error) {
     console.error(error);
     setStatus("Errore nel caricamento del confine comunale", true);
   }
+}
+
+function normalizeOperationalBoundaryFeature(feature) {
+  if (!feature?.geometry) throw new Error("Geometria del confine comunale non disponibile");
+
+  const sourceProperties = feature.properties || {};
+  return {
+    ...feature,
+    properties: {
+      ...sourceProperties,
+      name: "Melegnano",
+      istat_code: String(sourceProperties.ISTAT || 15140).padStart(6, "0"),
+      administrative_unit: sourceProperties.BELFIORE || "F100",
+      source: "Regione Lombardia - Limiti amministrativi DBT",
+      source_year: sourceProperties.ANNO || null,
+      source_url:
+        "https://www.cartografia.servizirl.it/arcgis1/rest/services/territorio/limiti_amministrativi_dbt_cr/MapServer/3",
+    },
+  };
 }
 
 async function loadGeojson(url) {
@@ -255,8 +277,8 @@ copyCoordinateButton.addEventListener("click", async () => {
 });
 
 resetButton.addEventListener("click", () => {
-  if (cadastralBoundaryLayer) {
-    map.fitBounds(cadastralBoundaryLayer.getBounds(), { padding: [22, 22] });
+  if (operationalBoundaryLayer) {
+    map.fitBounds(operationalBoundaryLayer.getBounds(), { padding: [22, 22] });
   } else {
     map.setView(MELEGNANO_CENTER, INITIAL_ZOOM);
   }
@@ -386,8 +408,10 @@ async function findClickedMunicipality(point) {
   }
 
   const localCadastralFeatures = await ensureCadastralMunicipalitiesLoaded();
-  const cadastralMatches = localCadastralFeatures.filter((candidate) =>
-    isPointInGeometry(point, candidate.geometry)
+  const cadastralMatches = localCadastralFeatures.filter(
+    (candidate) =>
+      !isMelegnanoOperationalFeature(candidate) &&
+      isPointInGeometry(point, candidate.geometry)
   );
 
   if (cadastralMatches.length > 1) return closestFeatureByBoundaryDistance(point, cadastralMatches);
@@ -467,12 +491,12 @@ function isMelegnanoName(feature) {
   return feature.properties.name?.toLowerCase() === "melegnano";
 }
 
-function bringCadastralZoningToFront() {
-  if (cadastralBoundaryLayer) cadastralBoundaryLayer.bringToFront();
+function bringOperationalBoundaryToFront() {
+  if (operationalBoundaryLayer) operationalBoundaryLayer.bringToFront();
 }
 
 function bringBoundaryLayersToFront() {
-  if (map.hasLayer(cadastralZoningLayer)) bringCadastralZoningToFront();
+  if (map.hasLayer(operationalBoundaryOverlay)) bringOperationalBoundaryToFront();
   if (regionalBoundaryLayer && map.hasLayer(regionalBoundaryLayer)) {
     regionalBoundaryLayer.bringToFront();
   }
@@ -715,7 +739,7 @@ function toggleOverlay(layerName) {
 
   uiState.overlays[layerName] = !uiState.overlays[layerName];
   const layers = {
-    cadastralZoning: cadastralZoningLayer,
+    operationalBoundary: operationalBoundaryOverlay,
     regionalBoundary: regionalBoundaryLayer,
     mask: maskLayer,
   };
