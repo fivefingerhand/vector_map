@@ -22,7 +22,7 @@ const baseLayers = {
     {
       maxZoom: 19,
       attribution:
-        "Tiles &copy; Esri, Maxar, Earthstar Geographics, and the GIS User Community",
+        "Tiles &copy; Esri, Vantor, Earthstar Geographics, and the GIS User Community",
     }
   ),
   roadVoyager: createCartoLayer("voyager"),

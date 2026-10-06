@@ -2,6 +2,7 @@
 
 ## 2026-10-06
 
+- Aggiornata l'attribuzione di Esri World Imagery sostituendo il precedente fornitore `Maxar` con `Vantor`.
 - Sostituito il confine operativo catastale con il limite amministrativo comunale DBT pubblicato da Regione Lombardia (`limiti_amministrativi_dbt_cr/MapServer/3`, `ANNO=2022`).
 - Il nuovo confine locale governa linea rossa, maschera, reset vista, click e classificazione GPS, senza dipendere dal servizio remoto a runtime.
 - Impedito ai dati catastali dei comuni vicini di riassegnare Melegnano quando un punto e esterno al nuovo confine operativo.
